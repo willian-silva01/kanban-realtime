@@ -6,6 +6,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
@@ -35,6 +36,9 @@ const corsOptions = {
   credentials: true, // Necessário caso venha utilizar cookies HttpOnly futuramente
 };
 app.use(cors(corsOptions));
+
+// ─── 2. Parsing de Cookies e Corpo (`body`) ───────
+app.use(cookieParser());
 
 // ─── 2. Parsing de Corpo (`body`) ─────────────────
 // Limite estrito de conversão JSON para reduzir a superfície de ataque por 'Payloads imensos'

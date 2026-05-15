@@ -13,12 +13,12 @@ class AuthService {
   async register({ name, email, password }) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
-    
-    // Devolve a criação para o serviço de usuários
+
     const safeUser = await userService.createUser({ name, email, passwordHash });
-    const token = this._generateToken(safeUser);
-    
-    return { user: safeUser, token };
+    const accessToken = this._generateAccessToken(safeUser);
+    const refreshToken = this._generateRefreshToken(safeUser);
+
+    return { user: safeUser, accessToken, refreshToken };
   }
 
   async login({ email, password }) {
@@ -33,21 +33,54 @@ class AuthService {
       throw ApiError.unauthorized('Email ou senha inválidos', 'INVALID_CREDENTIALS');
     }
 
-    const token = this._generateToken(user);
-    return { user: user.toSafeObject(), token };
+    const safeUser = user.toSafeObject();
+    const accessToken = this._generateAccessToken(safeUser);
+    const refreshToken = this._generateRefreshToken(safeUser);
+
+    return { user: safeUser, accessToken, refreshToken };
   }
 
-  _generateToken(user) {
-    const payload = {
-      id: user.id,
-      email: user.email,
-    };
+  async refresh(refreshToken) {
+    if (!refreshToken) {
+      throw ApiError.unauthorized('Refresh token não fornecido', 'REFRESH_TOKEN_MISSING');
+    }
 
-    // CORRIGIDO: usa env.JWT_EXPIRES_IN (sem hardcode '24h')
-    // A variável é definida no .env como '15m'
-    return jwt.sign(payload, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        throw ApiError.unauthorized('Sessão expirada, faça login novamente', 'REFRESH_TOKEN_EXPIRED');
+      }
+      throw ApiError.unauthorized('Refresh token inválido', 'REFRESH_TOKEN_INVALID');
+    }
+
+    const user = await userRepository.findById(decoded.id);
+    if (!user) {
+      throw ApiError.unauthorized('Usuário não encontrado', 'USER_NOT_FOUND');
+    }
+
+    const safeUser = user.toSafeObject();
+    const accessToken = this._generateAccessToken(safeUser);
+    const newRefreshToken = this._generateRefreshToken(safeUser);
+
+    return { user: safeUser, accessToken, refreshToken: newRefreshToken };
+  }
+
+  _generateAccessToken(user) {
+    return jwt.sign(
+      { id: user.id, email: user.email },
+      env.JWT_SECRET,
+      { expiresIn: env.JWT_EXPIRES_IN }
+    );
+  }
+
+  _generateRefreshToken(user) {
+    return jwt.sign(
+      { id: user.id, email: user.email },
+      env.JWT_REFRESH_SECRET,
+      { expiresIn: env.JWT_REFRESH_EXPIRES_IN }
+    );
   }
 }
 

@@ -1,6 +1,6 @@
 /**
  * AuthContext — Contexto Global de Autenticação
- * Responsável por: armazenar usuário, token, gerenciar socket,
+ * Responsável por: armazenar usuário, token em memória, gerenciar socket,
  * expor login/logout e proteger rotas de forma centralizada.
  */
 
@@ -15,21 +15,20 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import api from '../services/api';
+import api, { setAccessToken } from '../services/api';
 
-// ─── Constantes ─────────────────────────────────────────────────────────────
-const TOKEN_KEY = '@Kanban:token';
+// ─── Constantes ───────────────────────────────────────────────────────────────
 const USER_KEY = '@Kanban:user';
 const SOCKET_URL = 'http://localhost:3000';
 
-// ─── Criação do Contexto ─────────────────────────────────────────────────────
+// ─── Criação do Contexto ──────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
+// ─── Provider ─────────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
-  // ─── Estado ─────────────────────────────────────────────────────────────
+  // ─── Estado ───────────────────────────────────────────────────────────────
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem(USER_KEY);
@@ -39,24 +38,48 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  // Access token em memória — não persiste no localStorage
+  const [token, setToken] = useState(null);
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
+  // true durante login/register e na restauração inicial de sessão
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // Ref para evitar dupla conexão no StrictMode do React
   const socketRef = useRef(null);
-
-  // CORRIGIDO (MÉDIA-03): Ref para capturar sempre a versão mais recente de logout
-  // dentro dos event handlers do socket (evita closure stale)
   const logoutRef = useRef(null);
 
-  // Indica se o usuário está autenticado (tem token válido + user)
   const isAuthenticated = Boolean(token && user);
 
-  // ─── Iniciar Socket após autenticação ────────────────────────────────────
+  // ─── Restaurar sessão via refresh token (cookie httpOnly) ─────────────────
+  // Executado uma única vez na montagem. Se houver dados de usuário em
+  // localStorage, tenta renovar o access token usando o cookie de refresh.
+  useEffect(() => {
+    const restoreSession = async () => {
+      const storedUser = localStorage.getItem(USER_KEY);
+      if (!storedUser) {
+        setAuthLoading(false);
+        return;
+      }
+      try {
+        const response = await api.post('/auth/refresh');
+        const { user: userData, accessToken: newToken } = response.data;
+        setAccessToken(newToken);
+        setToken(newToken);
+        setUser(userData);
+        localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      } catch {
+        // Refresh token expirado ou inválido — limpa dados obsoletos
+        localStorage.removeItem(USER_KEY);
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    restoreSession();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Conectar Socket após autenticação ────────────────────────────────────
   const connectSocket = useCallback((authToken) => {
-    // Limpa socket anterior se existir
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
@@ -70,22 +93,17 @@ export function AuthProvider({ children }) {
       reconnectionDelay: 1000,
     });
 
-    newSocket.on('connect', () => {
-      setIsConnected(true);
-    });
+    newSocket.on('connect', () => setIsConnected(true));
 
     newSocket.on('disconnect', (reason) => {
       setIsConnected(false);
       if (reason === 'io server disconnect') {
-        // Servidor derrubou — provavelmente token expirou
-        // CORRIGIDO: usa logoutRef para sempre chamar a versão atual de logout
         logoutRef.current?.();
       }
     });
 
     newSocket.on('connect_error', (err) => {
       setIsConnected(false);
-      // CORRIGIDO: usa logoutRef para evitar closure stale
       if (err.message === 'TOKEN_INVALID' || err.message === 'TOKEN_MISSING') {
         logoutRef.current?.();
       }
@@ -96,12 +114,11 @@ export function AuthProvider({ children }) {
     return newSocket;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Persistir dados e conectar socket quando token muda ─────────────────
+  // ─── Sincronizar socket com o token ───────────────────────────────────────
   useEffect(() => {
     if (token && user) {
       connectSocket(token);
     } else {
-      // Se deslogou, limpar socket
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
@@ -118,25 +135,21 @@ export function AuthProvider({ children }) {
     };
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── Login ───────────────────────────────────────────────────────────────
+  // ─── Login ────────────────────────────────────────────────────────────────
   const login = useCallback(async ({ email, password }) => {
     setAuthLoading(true);
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { user: userData, token: authToken } = response.data;
+      const { user: userData, accessToken: authToken } = response.data;
 
       if (!authToken) throw new Error('Token não retornado pela API.');
 
-      // Persistir
-      localStorage.setItem(TOKEN_KEY, authToken);
+      setAccessToken(authToken);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
-
       setToken(authToken);
       setUser(userData);
 
-      // Redirecionar para o board
       navigate('/board');
-
       return { success: true };
     } catch (err) {
       const message =
@@ -150,28 +163,21 @@ export function AuthProvider({ children }) {
     }
   }, [navigate]);
 
-  // ─── Registro ────────────────────────────────────────────────────────────
+  // ─── Registro ─────────────────────────────────────────────────────────────
   const register = useCallback(async ({ name, email, password }) => {
     setAuthLoading(true);
     try {
       const response = await api.post('/auth/register', { name, email, password });
-      const { user: userData, token: authToken } = response.data;
+      const { user: userData, accessToken: authToken } = response.data;
 
-      // Suporte ao wrapper { data: { user, token } }
-      const resolvedToken = authToken || response.data?.data?.token;
-      const resolvedUser = userData || response.data?.data?.user;
+      if (!authToken) throw new Error('Token não retornado. Tente fazer login.');
 
-      if (!resolvedToken) throw new Error('Token não retornado. Tente fazer login.');
-
-      // Persistir
-      localStorage.setItem(TOKEN_KEY, resolvedToken);
-      localStorage.setItem(USER_KEY, JSON.stringify(resolvedUser));
-
-      setToken(resolvedToken);
-      setUser(resolvedUser);
+      setAccessToken(authToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setToken(authToken);
+      setUser(userData);
 
       navigate('/board');
-
       return { success: true };
     } catch (err) {
       const message =
@@ -185,9 +191,15 @@ export function AuthProvider({ children }) {
     }
   }, [navigate]);
 
-  // ─── Logout ──────────────────────────────────────────────────────────────
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
+  // ─── Logout ───────────────────────────────────────────────────────────────
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/auth/logout'); // limpa o cookie httpOnly no servidor
+    } catch {
+      // ignora falha de rede — o estado local é limpo de qualquer forma
+    }
+
+    setAccessToken(null);
     localStorage.removeItem(USER_KEY);
 
     if (socketRef.current) {
@@ -203,20 +215,16 @@ export function AuthProvider({ children }) {
     navigate('/login');
   }, [navigate]);
 
-  // CORRIGIDO (MÉDIA-03): mantém logoutRef atualizado com a versão mais recente de logout
-  useEffect(() => {
-    logoutRef.current = logout;
-  }, [logout]);
+  useEffect(() => { logoutRef.current = logout; }, [logout]);
 
-  // CORRIGIDO (MÉDIA-01): ouve evento 'auth:logout' disparado pelo interceptor do Axios
-  // quando uma resposta 401 é recebida — garante que o React state é limpo corretamente
+  // Ouve evento disparado pelo interceptor Axios quando o refresh falha
   useEffect(() => {
     const handleForcedLogout = () => logout();
     window.addEventListener('auth:logout', handleForcedLogout);
     return () => window.removeEventListener('auth:logout', handleForcedLogout);
   }, [logout]);
 
-  // ─── Valor do contexto (memoizado para evitar re-renders) ────────────────
+  // ─── Valor do contexto ────────────────────────────────────────────────────
   const contextValue = useMemo(
     () => ({
       user,
@@ -239,7 +247,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-// ─── Hook de consumo ─────────────────────────────────────────────────────────
+// ─── Hook de consumo ──────────────────────────────────────────────────────────
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) {

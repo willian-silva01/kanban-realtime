@@ -21,6 +21,9 @@ const env = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 
+  // Frontend
+  FRONTEND_URL: process.env.FRONTEND_URL,
+
   // Helpers
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -34,6 +37,13 @@ if (!env.JWT_SECRET) {
     '[FATAL] JWT_SECRET não está definido no .env.\n' +
     'O servidor não pode iniciar sem esta variável de segurança configurada.\n' +
     'Verifique o arquivo .env ou as variáveis de ambiente do container/servidor.'
+  );
+}
+
+if (!env.JWT_REFRESH_SECRET) {
+  throw new Error(
+    '[FATAL] JWT_REFRESH_SECRET não está definido no .env.\n' +
+    'O servidor não pode iniciar sem esta variável de segurança configurada.'
   );
 }
 
