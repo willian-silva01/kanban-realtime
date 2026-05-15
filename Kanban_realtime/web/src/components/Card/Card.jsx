@@ -1,10 +1,35 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag } from 'lucide-react';
+import { Tag, Calendar } from 'lucide-react';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
 import LabelPicker from '../LabelPicker/LabelPicker';
+import api from '../../services/api';
 import './Card.css';
+
+function getDueDateStatus(dueDate) {
+  if (!dueDate) return null;
+  const diff = new Date(dueDate) - Date.now();
+  if (diff < 0) return 'overdue';
+  if (diff < 86400000) return 'soon';
+  return 'ok';
+}
+
+function formatDueDate(dueDate) {
+  const d = new Date(dueDate);
+  return (
+    d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) +
+    ' ' +
+    d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
+function toDatetimeLocal(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default function Card({
   card,
@@ -14,17 +39,14 @@ export default function Card({
   boardLabels = [],
   onCardLabelChange,
   onBoardLabelChange,
+  onDueDateChange,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [dueDatePickerOpen, setDueDatePickerOpen] = useState(false);
+  const [dueDateInput, setDueDateInput] = useState('');
+  const [savingDueDate, setSavingDueDate] = useState(false);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'Card', card },
   });
@@ -37,20 +59,36 @@ export default function Card({
 
   const classNames = `card ${isOverlay ? 'card-ghost' : ''}`;
   const cardLabels = card.labels ?? [];
+  const dueDateStatus = getDueDateStatus(card.dueDate);
 
   const togglePicker = (e) => {
     e.stopPropagation();
     setPickerOpen((v) => !v);
   };
 
+  const openDueDatePicker = (e) => {
+    e.stopPropagation();
+    setDueDateInput(toDatetimeLocal(card.dueDate));
+    setDueDatePickerOpen((v) => !v);
+  };
+
+  const handleDueDateSave = async (dueDate) => {
+    setSavingDueDate(true);
+    try {
+      const res = await api.put(`/cards/${card.id}`, { dueDate });
+      const updated = res.data.data;
+      onDueDateChange?.(card.id, updated.dueDate ?? null);
+      socket?.emit('card:duedate:updated', { boardId, cardId: card.id, dueDate: updated.dueDate ?? null });
+      setDueDatePickerOpen(false);
+    } catch (err) {
+      console.error('Erro ao salvar prazo', err);
+    } finally {
+      setSavingDueDate(false);
+    }
+  };
+
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={classNames}
-      {...attributes}
-      {...listeners}
-    >
+    <div ref={setNodeRef} style={style} className={classNames} {...attributes} {...listeners}>
       {/* Label chips */}
       {cardLabels.length > 0 && (
         <div className="card-labels" onPointerDown={(e) => e.stopPropagation()}>
@@ -70,7 +108,18 @@ export default function Card({
       <div className="card-title">{card.title}</div>
       {card.description && <div className="card-desc">{card.description}</div>}
 
-      {/* Label picker trigger */}
+      {/* Due date badge */}
+      {card.dueDate && (
+        <div
+          className={`card-duedate card-duedate--${dueDateStatus}`}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <Calendar size={11} />
+          {formatDueDate(card.dueDate)}
+        </div>
+      )}
+
+      {/* Actions */}
       {!isOverlay && (
         <div
           className="card-actions"
@@ -84,6 +133,13 @@ export default function Card({
           >
             <Tag size={12} />
           </button>
+          <button
+            className={`card-label-btn ${dueDatePickerOpen ? 'active' : ''}`}
+            onClick={openDueDatePicker}
+            title="Definir prazo"
+          >
+            <Calendar size={12} />
+          </button>
         </div>
       )}
 
@@ -95,12 +151,50 @@ export default function Card({
           boardLabels={boardLabels}
           cardLabels={cardLabels}
           socket={socket}
-          onCardLabelChange={onCardLabelChange
-            ? (type, payload) => onCardLabelChange(card.id, type, payload)
-            : undefined}
+          onCardLabelChange={
+            onCardLabelChange
+              ? (type, payload) => onCardLabelChange(card.id, type, payload)
+              : undefined
+          }
           onBoardLabelChange={onBoardLabelChange}
           onClose={() => setPickerOpen(false)}
         />
+      )}
+
+      {/* Inline due date picker */}
+      {dueDatePickerOpen && !isOverlay && (
+        <div
+          className="duedate-picker"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="datetime-local"
+            className="duedate-input"
+            value={dueDateInput}
+            onChange={(e) => setDueDateInput(e.target.value)}
+          />
+          <div className="duedate-actions">
+            <button
+              className="duedate-btn duedate-btn--save"
+              onClick={() =>
+                handleDueDateSave(dueDateInput ? new Date(dueDateInput).toISOString() : null)
+              }
+              disabled={savingDueDate || !dueDateInput}
+            >
+              {savingDueDate ? '...' : 'Salvar'}
+            </button>
+            {card.dueDate && (
+              <button
+                className="duedate-btn duedate-btn--clear"
+                onClick={() => handleDueDateSave(null)}
+                disabled={savingDueDate}
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       <CommentsPanel cardId={card.id} socket={socket} />

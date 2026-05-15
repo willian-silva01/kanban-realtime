@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X } from 'lucide-react';
+import { X, ArrowUpDown } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
@@ -23,6 +23,7 @@ export default function Board({ socket, boardId, user }) {
   const [boardLabels, setBoardLabels] = useState([]);
   const [activeCard, setActiveCard] = useState(null);
   const [activeLabelFilter, setActiveLabelFilter] = useState(null);
+  const [sortByDueDate, setSortByDueDate] = useState(false);
 
   const offlineQueueRef = useRef([]);
   const lastEmitTime = useRef(0);
@@ -47,6 +48,10 @@ export default function Board({ socket, boardId, user }) {
         return { ...c, labels: (c.labels ?? []).filter((l) => l.id !== payload) };
       })
     );
+  }, []);
+
+  const handleDueDateChange = useCallback((cardId, dueDate) => {
+    setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, dueDate } : c)));
   }, []);
 
   const handleBoardLabelChange = useCallback((type, payload) => {
@@ -126,6 +131,10 @@ export default function Board({ socket, boardId, user }) {
       setActiveLabelFilter((f) => (f === labelId ? null : f));
     };
 
+    const onCardDueDateUpdated = ({ cardId, dueDate }) => {
+      setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, dueDate } : c)));
+    };
+
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
     socket.on('card:label:added', onCardLabelAdded);
@@ -133,6 +142,7 @@ export default function Board({ socket, boardId, user }) {
     socket.on('label:created', onLabelCreated);
     socket.on('label:updated', onLabelUpdated);
     socket.on('label:deleted', onLabelDeleted);
+    socket.on('card:duedate:updated', onCardDueDateUpdated);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -142,6 +152,7 @@ export default function Board({ socket, boardId, user }) {
       socket.off('label:created', onLabelCreated);
       socket.off('label:updated', onLabelUpdated);
       socket.off('label:deleted', onLabelDeleted);
+      socket.off('card:duedate:updated', onCardDueDateUpdated);
       offlineQueueRef.current = [];
     };
   }, [socket]);
@@ -232,46 +243,64 @@ export default function Board({ socket, boardId, user }) {
     }
   };
 
+  const sortCards = (colCards) => {
+    if (!sortByDueDate) return colCards;
+    return [...colCards].sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      {/* ── Barra de Filtro por Label ────────────────────────────────────── */}
-      {boardLabels.length > 0 && (
-        <div
+      {/* ── Barra de Filtro por Label + Ordenação ───────────────────────── */}
+      <div
           className="label-filter-bar"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <span className="label-filter-title">Filtrar:</span>
-          {boardLabels.map((label) => (
-            <button
-              key={label.id}
-              className={`label-filter-chip ${activeLabelFilter === label.id ? 'active' : ''}`}
-              style={{
-                '--chip-color': label.color,
-                borderColor: activeLabelFilter === label.id ? label.color : 'transparent',
-              }}
-              onClick={() =>
-                setActiveLabelFilter((f) => (f === label.id ? null : label.id))
-              }
-              title={activeLabelFilter === label.id ? 'Remover filtro' : `Filtrar por "${label.name}"`}
-            >
-              <span
-                className="label-filter-dot"
-                style={{ background: label.color }}
-              />
-              {label.name}
-            </button>
-          ))}
-          {activeLabelFilter && (
-            <button
-              className="label-filter-clear"
-              onClick={() => setActiveLabelFilter(null)}
-              title="Limpar filtro"
-            >
-              <X size={12} /> Limpar
-            </button>
+          {boardLabels.length > 0 && (
+            <>
+              <span className="label-filter-title">Filtrar:</span>
+              {boardLabels.map((label) => (
+                <button
+                  key={label.id}
+                  className={`label-filter-chip ${activeLabelFilter === label.id ? 'active' : ''}`}
+                  style={{
+                    '--chip-color': label.color,
+                    borderColor: activeLabelFilter === label.id ? label.color : 'transparent',
+                  }}
+                  onClick={() =>
+                    setActiveLabelFilter((f) => (f === label.id ? null : label.id))
+                  }
+                  title={activeLabelFilter === label.id ? 'Remover filtro' : `Filtrar por "${label.name}"`}
+                >
+                  <span className="label-filter-dot" style={{ background: label.color }} />
+                  {label.name}
+                </button>
+              ))}
+              {activeLabelFilter && (
+                <button
+                  className="label-filter-clear"
+                  onClick={() => setActiveLabelFilter(null)}
+                  title="Limpar filtro"
+                >
+                  <X size={12} /> Limpar
+                </button>
+              )}
+            </>
           )}
+          <button
+            className={`label-filter-chip ${sortByDueDate ? 'active' : ''}`}
+            style={{ '--chip-color': '#6a38e3', borderColor: sortByDueDate ? '#6a38e3' : 'transparent', marginLeft: 'auto' }}
+            onClick={() => setSortByDueDate((v) => !v)}
+            title={sortByDueDate ? 'Remover ordenação por prazo' : 'Ordenar por prazo'}
+          >
+            <ArrowUpDown size={11} />
+            Prazo
+          </button>
         </div>
-      )}
 
       {/* ── Colunas + DnD ────────────────────────────────────────────────── */}
       <DndContext
@@ -292,13 +321,14 @@ export default function Board({ socket, boardId, user }) {
               <Column
                 key={col.id}
                 column={col}
-                cards={cards.filter((c) => c.columnId === col.id)}
+                cards={sortCards(cards.filter((c) => c.columnId === col.id))}
                 socket={socket}
                 boardId={boardId}
                 boardLabels={boardLabels}
                 activeLabelFilter={activeLabelFilter}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
+                onDueDateChange={handleDueDateChange}
               />
             ))}
           </SortableContext>

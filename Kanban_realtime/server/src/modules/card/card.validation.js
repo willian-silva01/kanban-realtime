@@ -31,6 +31,11 @@ const updateCardSchema = z.object({
     .trim()
     .nullable()
     .optional(),
+  dueDate: z
+    .string()
+    .datetime({ offset: true, message: 'Data de vencimento inválida' })
+    .nullable()
+    .optional(),
 });
 
 const moveCardSchema = z.object({

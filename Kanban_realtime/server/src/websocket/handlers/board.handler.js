@@ -75,6 +75,10 @@ module.exports = (io, socket) => {
     socket.to(`board_${boardId}`).emit('card:delete', { cardId });
   });
 
+  socket.on('card:duedate:updated', ({ boardId, cardId, dueDate }) => {
+    socket.to(`board_${boardId}`).emit('card:duedate:updated', { cardId, dueDate });
+  });
+
   // ─── COLUMNS ─────────────────────────────────────────────────────────────
 
   socket.on('column:create', ({ boardId, column }) => {

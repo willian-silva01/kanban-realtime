@@ -101,9 +101,10 @@ model Card {
   title       String   @db.VarChar(200)
   description String?  @db.Text
   position    Int
-  createdBy   String   @map("created_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy   String    @map("created_by")
+  dueDate     DateTime? @map("due_date")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
   column   Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)

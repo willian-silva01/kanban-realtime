@@ -14,6 +14,7 @@ export default function Column({
   activeLabelFilter,
   onCardLabelChange,
   onBoardLabelChange,
+  onDueDateChange,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -47,6 +48,7 @@ export default function Column({
               boardLabels={boardLabels}
               onCardLabelChange={onCardLabelChange}
               onBoardLabelChange={onBoardLabelChange}
+              onDueDateChange={onDueDateChange}
             />
           ))}
         </SortableContext>
