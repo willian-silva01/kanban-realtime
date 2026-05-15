@@ -19,6 +19,7 @@ const { columnCardsRouter, cardsRouter } = require('./modules/card/card.routes')
 const activityRoutes = require('./modules/activity/activity.routes');
 const commentRoutes = require('./modules/comment/comment.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
+const { boardLabelRouter, cardLabelRouter } = require('./modules/label/label.routes');
 
 // Inicializar o Express
 const app = express();
@@ -112,6 +113,8 @@ app.use('/api/columns/:columnId/cards', columnCardsRouter);
 app.use('/api/cards/:cardId/comments', commentRoutes);
 app.use('/api/cards', cardsRouter);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/boards/:boardId/labels', boardLabelRouter);
+app.use('/api/cards/:cardId/labels', cardLabelRouter);
 
 // ─── Rota 404 ───────────────────────────────
 app.use((req, res) => {

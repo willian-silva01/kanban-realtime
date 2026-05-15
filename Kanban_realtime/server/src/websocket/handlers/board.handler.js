@@ -22,8 +22,14 @@ module.exports = (io, socket) => {
       // Usado tanto na conexão inicial quanto na reconexão — o cliente aplica o
       // estado recebido e em seguida drena a fila de ações offline.
       const columns = board.columns.map(({ cards: _cards, ...col }) => col);
-      const cards = board.columns.flatMap((col) => col.cards);
-      socket.emit('board:sync', { columns, cards });
+      const cards = board.columns.flatMap((col) =>
+        col.cards.map(({ labels: cardLabels, ...card }) => ({
+          ...card,
+          labels: (cardLabels ?? []).map((cl) => cl.label),
+        }))
+      );
+      const boardLabels = board.labels ?? [];
+      socket.emit('board:sync', { columns, cards, boardLabels });
 
       if (typeof callback === 'function') callback({ success: true, room });
     } catch (error) {
@@ -81,6 +87,28 @@ module.exports = (io, socket) => {
 
   socket.on('column:reorder', ({ boardId, columns }) => {
     socket.to(`board_${boardId}`).emit('column:reorder', { columns });
+  });
+
+  // ─── LABELS ──────────────────────────────────────────────────────────────
+
+  socket.on('card:label:added', ({ boardId, cardId, label }) => {
+    socket.to(`board_${boardId}`).emit('card:label:added', { cardId, label });
+  });
+
+  socket.on('card:label:removed', ({ boardId, cardId, labelId }) => {
+    socket.to(`board_${boardId}`).emit('card:label:removed', { cardId, labelId });
+  });
+
+  socket.on('label:created', ({ boardId, label }) => {
+    socket.to(`board_${boardId}`).emit('label:created', { label });
+  });
+
+  socket.on('label:updated', ({ boardId, label }) => {
+    socket.to(`board_${boardId}`).emit('label:updated', { label });
+  });
+
+  socket.on('label:deleted', ({ boardId, labelId }) => {
+    socket.to(`board_${boardId}`).emit('label:deleted', { labelId });
   });
 
   // ─── CURSORES COOPERATIVOS ───────────────────────────────────────────────

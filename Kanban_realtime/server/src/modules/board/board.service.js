@@ -97,9 +97,15 @@ class BoardService {
                 creator: {
                   select: { id: true, name: true, email: true },
                 },
+                labels: {
+                  include: { label: true },
+                },
               },
             },
           },
+        },
+        labels: {
+          orderBy: { createdAt: 'asc' },
         },
       },
     });

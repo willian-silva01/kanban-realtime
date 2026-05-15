@@ -1,24 +1,49 @@
-.card-container {
-  background: var(--card-bg);
-  padding: 14px;
-  border-radius: 8px;
-  cursor: grab;
-  color: var(--text-primary);
+.card-labels {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid rgba(255,255,255,0.03);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  transition: box-shadow 0.2s, transform 0.1s;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
 }
-.card-container:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+.card-label-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.6;
+  cursor: default;
+  user-select: none;
 }
-.card-container:active {
-  cursor: grabbing;
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
 }
-.card-overlay {
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  transform: scale(1.02) rotate(2deg);
-  z-index: 100;
+
+.card-label-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.card-label-btn:hover,
+.card-label-btn.active {
+  background: rgba(106, 56, 227, 0.2);
+  color: #A881FC;
+  border-color: rgba(106, 56, 227, 0.4);
 }

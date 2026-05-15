@@ -44,6 +44,7 @@ model Board {
   members       BoardMember[]
   columns       Column[]
   activityLogs  ActivityLog[]
+  labels        Label[]
 
   @@index([ownerId]) // Performance para buscar boards do criador
   @@map("boards")
@@ -105,9 +106,10 @@ model Card {
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  column  Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  creator User      @relation("CardCreator", fields: [createdBy], references: [id])
+  column   Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  creator  User        @relation("CardCreator", fields: [createdBy], references: [id])
   comments Comment[]
+  labels   CardLabel[]
 
   // Índice composto para buscar os cartões da coluna + ordenação rápida da renderização
   @@index([columnId, position])
@@ -147,6 +149,33 @@ model Comment {
   // Isolamento do carregamento da aba lateral e ordenação temporal
   @@index([cardId, createdAt(sort: Desc)])
   @@map("comments")
+}
+
+// ── Label ────────────────────────────────────
+model Label {
+  id        String   @id @default(uuid())
+  boardId   String   @map("board_id")
+  name      String   @db.VarChar(50)
+  color     String   @db.VarChar(7)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  board Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards CardLabel[]
+
+  @@index([boardId])
+  @@map("labels")
+}
+
+// ── CardLabel ─────────────────────────────────
+model CardLabel {
+  cardId  String @map("card_id")
+  labelId String @map("label_id")
+
+  card  Card  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, labelId])
+  @@map("card_labels")
 }
 
 // ── Notification ─────────────────────────────

@@ -56,6 +56,20 @@ const prismaMock = {
     updateMany: jest.fn(),
     count: jest.fn(),
   },
+  label: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  cardLabel: {
+    create: jest.fn(),
+    findUnique: jest.fn(),
+    count: jest.fn(),
+    delete: jest.fn(),
+  },
   $transaction: jest.fn((arg) => {
     if (typeof arg === 'function') return arg(prismaMock);
     return Promise.all(arg);

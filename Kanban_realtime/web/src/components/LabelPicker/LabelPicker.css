@@ -1,0 +1,198 @@
+.label-picker {
+  background: #1e2230;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px;
+  width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  margin-top: 8px;
+}
+
+.label-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.label-picker-header span {
+  flex: 1;
+}
+
+.label-picker-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+.label-picker-close:hover { color: var(--text-primary); }
+
+.label-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.label-picker-empty {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 4px 0;
+}
+
+.label-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.label-picker-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+.label-picker-toggle:hover { background: rgba(255, 255, 255, 0.08); }
+.label-picker-toggle.assigned {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+}
+.label-picker-toggle:disabled { opacity: 0.6; cursor: wait; }
+
+.label-picker-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.label-picker-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label-picker-check {
+  color: #22C55E;
+  flex-shrink: 0;
+}
+
+.label-picker-delete {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.label-picker-delete:hover {
+  color: var(--danger);
+  background: rgba(227, 56, 77, 0.1);
+}
+
+.label-picker-create {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label-picker-create-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.label-picker-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.label-picker-input:focus { border-color: var(--brand); }
+.label-picker-input::placeholder { color: var(--text-secondary); }
+
+.label-picker-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  padding: 0;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.selected { border-color: white; }
+
+.color-custom {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0;
+  background: none;
+}
+
+.label-picker-submit {
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.label-picker-submit:hover:not(:disabled) { background: var(--brand-hover); }
+.label-picker-submit:disabled { opacity: 0.5; cursor: not-allowed; }
