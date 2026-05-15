@@ -1,0 +1,5 @@
+.bell-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}

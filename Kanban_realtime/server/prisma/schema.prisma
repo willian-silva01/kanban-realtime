@@ -1,0 +1,167 @@
+// =============================================
+// Prisma Schema — Kanban Realtime
+// =============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── User ─────────────────────────────────────
+model User {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  ownedBoards    Board[]         @relation("BoardOwner")
+  boardMembers   BoardMember[]
+  createdCards   Card[]          @relation("CardCreator")
+  activityLogs   ActivityLog[]
+  comments       Comment[]
+  notifications  Notification[]  @relation("UserNotifications")
+
+  @@map("users")
+}
+
+// ── Board ────────────────────────────────────
+model Board {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  ownerId   String   @map("owner_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  owner         User          @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members       BoardMember[]
+  columns       Column[]
+  activityLogs  ActivityLog[]
+
+  @@index([ownerId]) // Performance para buscar boards do criador
+  @@map("boards")
+}
+
+// ── BoardMember ──────────────────────────────
+model BoardMember {
+  id       String   @id @default(uuid())
+  boardId  String   @map("board_id")
+  userId   String   @map("user_id")
+  role     Role     @default(editor)
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  // Relacionamentos
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Um usuário não pode ser membro duplicado do mesmo board
+  // Isso já gera um índice B-tree único para (boardId, userId) silenciosamente
+  @@unique([boardId, userId])
+
+  // Performance inversa (lookup do Painel do Usuário: "Quais boards eu pertenço?")
+  @@index([userId])
+  @@map("board_members")
+}
+
+enum Role {
+  admin
+  editor
+  viewer
+}
+
+// ── Column ───────────────────────────────────
+model Column {
+  id        String   @id @default(uuid())
+  boardId   String   @map("board_id")
+  name      String   @db.VarChar(50)
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards Card[]
+
+  // Índice composto: Filtragem por board E Ordenação por posição imediata
+  @@index([boardId, position])
+  @@map("columns")
+}
+
+// ── Card ─────────────────────────────────────
+model Card {
+  id          String   @id @default(uuid())
+  columnId    String   @map("column_id")
+  title       String   @db.VarChar(200)
+  description String?  @db.Text
+  position    Int
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  column  Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  creator User      @relation("CardCreator", fields: [createdBy], references: [id])
+  comments Comment[]
+
+  // Índice composto para buscar os cartões da coluna + ordenação rápida da renderização
+  @@index([columnId, position])
+  @@map("cards")
+}
+
+// ── ActivityLog ──────────────────────────────
+model ActivityLog {
+  id        String   @id @default(uuid())
+  boardId   String   @map("board_id")
+  userId    String   @map("user_id")
+  action    String   @db.VarChar(50)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  // Ordenação descendente frequente no Timeline de Atividades
+  @@index([boardId, createdAt(sort: Desc)])
+  @@map("activity_logs")
+}
+
+// ── Comment ──────────────────────────────────
+model Comment {
+  id        String   @id @default(uuid())
+  cardId    String   @map("card_id")
+  userId    String   @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Isolamento do carregamento da aba lateral e ordenação temporal
+  @@index([cardId, createdAt(sort: Desc)])
+  @@map("comments")
+}
+
+// ── Notification ─────────────────────────────
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   @db.VarChar(50)
+  entityId  String?  @map("entity_id")
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Filtro pesadíssimo do Header: "Buscar Minhas (userId) Não Lidas (read) nas mais recentes (createdAt)"
+  @@index([userId, read, createdAt(sort: Desc)])
+  @@map("notifications")
+}

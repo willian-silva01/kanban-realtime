@@ -1,0 +1,179 @@
+:root {
+  --bg-color: #0f1115;
+  --board-bg: #161921;
+  --col-bg: rgba(255, 255, 255, 0.04);
+  --card-bg: rgba(255, 255, 255, 0.1);
+  --text-primary: #F0F2F5;
+  --text-secondary: #8E9BAE;
+  --brand: #6A38E3;
+  --brand-hover: #5427C6;
+  --danger: #E3384D;
+  
+  --font-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-base);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  background: radial-gradient(circle at 10% 20%, #171822 0%, #0d0f14 90%);
+  min-height: 100vh;
+  overflow: hidden; /* App fills screen */
+}
+
+/* Global Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.header {
+  background: rgba(22, 25, 33, 0.6);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #A881FC, #7446EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Kanban Board Container */
+.board-container {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  padding: 32px;
+  overflow-x: auto;
+  align-items: flex-start;
+  border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Scrollbars visuais */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Column Styles */
+.column {
+  background-color: var(--col-bg);
+  min-width: 320px;
+  width: 320px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.column-header {
+  padding: 18px 20px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.column-content {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: grab;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+}
+
+.card:active { cursor: grabbing; }
+
+.card-ghost {
+  opacity: 0.4;
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+}
+
+.card-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.new-card-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 0.9rem;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px;
+}
+
+.new-card-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-primary);
+}
+
+/* Utility Animations */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide { animation: slideDown 0.3s ease-out forwards; }
+.animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+

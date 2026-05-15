@@ -1,0 +1,28 @@
+.column-container {
+  background: var(--board-bg);
+  min-width: 320px;
+  max-width: 320px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+  max-height: 100%;
+}
+.column-header {
+  padding: 14px 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(255,255,255,0.02);
+}
+.column-content {
+  padding: 12px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

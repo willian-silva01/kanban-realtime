@@ -1,0 +1,10 @@
+.board-container {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  padding: 16px;
+  gap: 16px;
+  overflow-x: auto;
+  align-items: flex-start;
+  position: relative;
+}
