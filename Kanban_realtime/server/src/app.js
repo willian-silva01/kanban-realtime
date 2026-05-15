@@ -129,19 +129,4 @@ app.use((req, res) => {
 // Capta erros globais após injetar Rate limits/Headers e falhas de controllers
 app.use(errorHandler);
 
-// ─── Inicializar Servidor e WebSocket ─────────
-const http = require('http');
-const { initSocket } = require('./websocket/socket');
-
-const server = http.createServer(app);
-initSocket(server);
-
-// ─── Iniciar Servidor ───────────────────────
-server.listen(env.PORT, () => {
-  logger.info(`🚀 Servidor Kanban Realtime rodando na porta ${env.PORT}`);
-  logger.info(`📍 Ambiente: ${env.NODE_ENV}`);
-  logger.info(`🔗 URL: http://localhost:${env.PORT}`);
-  logger.info(`❤️  Health: http://localhost:${env.PORT}/api/health`);
-});
-
 module.exports = app;
