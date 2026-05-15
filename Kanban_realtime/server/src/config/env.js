@@ -21,6 +21,9 @@ const env = {
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 
+  // Redis
+  REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',
+
   // Frontend
   FRONTEND_URL: process.env.FRONTEND_URL,
 

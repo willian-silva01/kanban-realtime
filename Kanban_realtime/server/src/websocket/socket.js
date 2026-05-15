@@ -1,7 +1,10 @@
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const Redis = require('ioredis');
 const authSocketMiddleware = require('./middlewares/auth.socket');
 const registerBoardHandlers = require('./handlers/board.handler');
 const logger = require('../utils/logger');
+const env = require('../config/env');
 
 let io;
 
@@ -18,6 +21,14 @@ function initSocket(httpServer) {
       threshold: 1024,
     },
   });
+
+  // Redis Adapter — habilita pub/sub entre múltiplas instâncias do servidor.
+  // pubClient envia mensagens; subClient recebe. Dois clientes distintos são
+  // obrigatórios porque o Redis bloqueia um client em modo SUBSCRIBE.
+  const pubClient = new Redis(env.REDIS_URL);
+  const subClient = pubClient.duplicate();
+  io.adapter(createAdapter(pubClient, subClient));
+  logger.info('[Socket] Redis Adapter configurado');
 
   // Middleware de autenticação JWT — valida token no handshake
   io.use(authSocketMiddleware);
