@@ -21,12 +21,13 @@ model User {
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  ownedBoards    Board[]         @relation("BoardOwner")
-  boardMembers   BoardMember[]
-  createdCards   Card[]          @relation("CardCreator")
-  activityLogs   ActivityLog[]
-  comments       Comment[]
-  notifications  Notification[]  @relation("UserNotifications")
+  ownedBoards     Board[]         @relation("BoardOwner")
+  boardMembers    BoardMember[]
+  createdCards    Card[]          @relation("CardCreator")
+  activityLogs    ActivityLog[]
+  comments        Comment[]
+  notifications   Notification[]  @relation("UserNotifications")
+  cardAssignments CardAssignee[]  @relation("CardAssigneeUser")
 
   @@map("users")
 }
@@ -107,10 +108,11 @@ model Card {
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  column   Column      @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  creator  User        @relation("CardCreator", fields: [createdBy], references: [id])
-  comments Comment[]
-  labels   CardLabel[]
+  column    Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  creator   User          @relation("CardCreator", fields: [createdBy], references: [id])
+  comments  Comment[]
+  labels    CardLabel[]
+  assignees CardAssignee[]
 
   // Índice composto para buscar os cartões da coluna + ordenação rápida da renderização
   @@index([columnId, position])
@@ -165,6 +167,21 @@ model Label {
 
   @@index([boardId])
   @@map("labels")
+}
+
+// ── CardAssignee ─────────────────────────────
+model CardAssignee {
+  cardId     String   @map("card_id")
+  userId     String   @map("user_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  assignedBy String   @map("assigned_by")
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation("CardAssigneeUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+  @@index([userId])
+  @@map("card_assignees")
 }
 
 // ── CardLabel ─────────────────────────────────

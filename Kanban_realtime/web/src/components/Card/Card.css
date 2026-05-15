@@ -111,6 +111,18 @@
   cursor: not-allowed;
 }
 
+/* ── Assignee avatars on card ────────────────────────────────────────────── */
+.card-assignees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.card-assignees .assignee-avatar--xs + .assignee-avatar--xs {
+  margin-left: -6px;
+}
+
 .card-actions {
   display: flex;
   align-items: center;

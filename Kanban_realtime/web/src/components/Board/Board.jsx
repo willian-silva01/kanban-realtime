@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X, ArrowUpDown } from 'lucide-react';
+import { X, ArrowUpDown, User } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
@@ -21,8 +21,10 @@ export default function Board({ socket, boardId, user }) {
   const [columns, setColumns] = useState([]);
   const [cards, setCards] = useState([]);
   const [boardLabels, setBoardLabels] = useState([]);
+  const [boardMembers, setBoardMembers] = useState([]);
   const [activeCard, setActiveCard] = useState(null);
   const [activeLabelFilter, setActiveLabelFilter] = useState(null);
+  const [myCardsFilter, setMyCardsFilter] = useState(false);
   const [sortByDueDate, setSortByDueDate] = useState(false);
 
   const offlineQueueRef = useRef([]);
@@ -54,6 +56,20 @@ export default function Board({ socket, boardId, user }) {
     setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, dueDate } : c)));
   }, []);
 
+  const handleAssigneeChange = useCallback((cardId, type, payload) => {
+    setCards((prev) =>
+      prev.map((c) => {
+        if (c.id !== cardId) return c;
+        if (type === 'add') {
+          const already = c.assignees?.some((a) => a.id === payload.id);
+          return already ? c : { ...c, assignees: [...(c.assignees ?? []), payload] };
+        }
+        // type === 'remove', payload = userId string
+        return { ...c, assignees: (c.assignees ?? []).filter((a) => a.id !== payload) };
+      })
+    );
+  }, []);
+
   const handleBoardLabelChange = useCallback((type, payload) => {
     setBoardLabels((prev) => {
       if (type === 'create') return [...prev, payload];
@@ -75,10 +91,11 @@ export default function Board({ socket, boardId, user }) {
   useEffect(() => {
     if (!socket) return;
 
-    const onBoardSync = ({ columns: syncedColumns, cards: syncedCards, boardLabels: syncedLabels }) => {
+    const onBoardSync = ({ columns: syncedColumns, cards: syncedCards, boardLabels: syncedLabels, boardMembers: syncedMembers }) => {
       setColumns(syncedColumns);
       setCards(syncedCards);
       setBoardLabels(syncedLabels ?? []);
+      setBoardMembers(syncedMembers ?? []);
       const queue = offlineQueueRef.current.splice(0);
       queue.forEach(({ event, payload }) => socket.emit(event, payload));
     };
@@ -135,6 +152,26 @@ export default function Board({ socket, boardId, user }) {
       setCards((prev) => prev.map((c) => (c.id === cardId ? { ...c, dueDate } : c)));
     };
 
+    const onAssigneeAdded = ({ cardId, assignee }) => {
+      setCards((prev) =>
+        prev.map((c) => {
+          if (c.id !== cardId) return c;
+          const already = c.assignees?.some((a) => a.id === assignee.id);
+          return already ? c : { ...c, assignees: [...(c.assignees ?? []), assignee] };
+        })
+      );
+    };
+
+    const onAssigneeRemoved = ({ cardId, userId: removedUserId }) => {
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === cardId
+            ? { ...c, assignees: (c.assignees ?? []).filter((a) => a.id !== removedUserId) }
+            : c
+        )
+      );
+    };
+
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
     socket.on('card:label:added', onCardLabelAdded);
@@ -143,6 +180,8 @@ export default function Board({ socket, boardId, user }) {
     socket.on('label:updated', onLabelUpdated);
     socket.on('label:deleted', onLabelDeleted);
     socket.on('card:duedate:updated', onCardDueDateUpdated);
+    socket.on('card:assignee:added', onAssigneeAdded);
+    socket.on('card:assignee:removed', onAssigneeRemoved);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -153,6 +192,8 @@ export default function Board({ socket, boardId, user }) {
       socket.off('label:updated', onLabelUpdated);
       socket.off('label:deleted', onLabelDeleted);
       socket.off('card:duedate:updated', onCardDueDateUpdated);
+      socket.off('card:assignee:added', onAssigneeAdded);
+      socket.off('card:assignee:removed', onAssigneeRemoved);
       offlineQueueRef.current = [];
     };
   }, [socket]);
@@ -243,14 +284,20 @@ export default function Board({ socket, boardId, user }) {
     }
   };
 
-  const sortCards = (colCards) => {
-    if (!sortByDueDate) return colCards;
-    return [...colCards].sort((a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate) - new Date(b.dueDate);
-    });
+  const filterAndSortCards = (colCards) => {
+    let result = colCards;
+    if (myCardsFilter && user?.id) {
+      result = result.filter((c) => c.assignees?.some((a) => a.id === user.id));
+    }
+    if (sortByDueDate) {
+      result = [...result].sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      });
+    }
+    return result;
   };
 
   return (
@@ -292,8 +339,17 @@ export default function Board({ socket, boardId, user }) {
             </>
           )}
           <button
+            className={`label-filter-chip ${myCardsFilter ? 'active' : ''}`}
+            style={{ '--chip-color': '#0ea5e9', borderColor: myCardsFilter ? '#0ea5e9' : 'transparent', marginLeft: 'auto' }}
+            onClick={() => setMyCardsFilter((v) => !v)}
+            title={myCardsFilter ? 'Mostrar todos os cartões' : 'Mostrar apenas meus cartões'}
+          >
+            <User size={11} />
+            Meus cartões
+          </button>
+          <button
             className={`label-filter-chip ${sortByDueDate ? 'active' : ''}`}
-            style={{ '--chip-color': '#6a38e3', borderColor: sortByDueDate ? '#6a38e3' : 'transparent', marginLeft: 'auto' }}
+            style={{ '--chip-color': '#6a38e3', borderColor: sortByDueDate ? '#6a38e3' : 'transparent' }}
             onClick={() => setSortByDueDate((v) => !v)}
             title={sortByDueDate ? 'Remover ordenação por prazo' : 'Ordenar por prazo'}
           >
@@ -321,14 +377,16 @@ export default function Board({ socket, boardId, user }) {
               <Column
                 key={col.id}
                 column={col}
-                cards={sortCards(cards.filter((c) => c.columnId === col.id))}
+                cards={filterAndSortCards(cards.filter((c) => c.columnId === col.id))}
                 socket={socket}
                 boardId={boardId}
                 boardLabels={boardLabels}
+                boardMembers={boardMembers}
                 activeLabelFilter={activeLabelFilter}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
                 onDueDateChange={handleDueDateChange}
+                onAssigneeChange={handleAssigneeChange}
               />
             ))}
           </SortableContext>

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar } from 'lucide-react';
+import { Tag, Calendar, Users } from 'lucide-react';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
 import LabelPicker from '../LabelPicker/LabelPicker';
+import AssigneePicker from '../AssigneePicker/AssigneePicker';
 import api from '../../services/api';
 import './Card.css';
+import '../AssigneePicker/AssigneePicker.css';
 
 function getDueDateStatus(dueDate) {
   if (!dueDate) return null;
@@ -31,17 +33,28 @@ function toDatetimeLocal(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function getInitials(name) {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
 export default function Card({
   card,
   isOverlay,
   socket,
   boardId,
   boardLabels = [],
+  boardMembers = [],
   onCardLabelChange,
   onBoardLabelChange,
   onDueDateChange,
+  onAssigneeChange,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [assigneePickerOpen, setAssigneePickerOpen] = useState(false);
   const [dueDatePickerOpen, setDueDatePickerOpen] = useState(false);
   const [dueDateInput, setDueDateInput] = useState('');
   const [savingDueDate, setSavingDueDate] = useState(false);
@@ -59,11 +72,19 @@ export default function Card({
 
   const classNames = `card ${isOverlay ? 'card-ghost' : ''}`;
   const cardLabels = card.labels ?? [];
+  const cardAssignees = card.assignees ?? [];
   const dueDateStatus = getDueDateStatus(card.dueDate);
 
   const togglePicker = (e) => {
     e.stopPropagation();
     setPickerOpen((v) => !v);
+    if (!pickerOpen) setAssigneePickerOpen(false);
+  };
+
+  const toggleAssigneePicker = (e) => {
+    e.stopPropagation();
+    setAssigneePickerOpen((v) => !v);
+    if (!assigneePickerOpen) setPickerOpen(false);
   };
 
   const openDueDatePicker = (e) => {
@@ -119,6 +140,21 @@ export default function Card({
         </div>
       )}
 
+      {/* Assignee avatars */}
+      {cardAssignees.length > 0 && (
+        <div className="card-assignees" onPointerDown={(e) => e.stopPropagation()}>
+          {cardAssignees.map((a) => (
+            <span
+              key={a.id}
+              className="assignee-avatar assignee-avatar--xs"
+              title={`${a.name} (${a.email})`}
+            >
+              {getInitials(a.name)}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Actions */}
       {!isOverlay && (
         <div
@@ -134,6 +170,13 @@ export default function Card({
             <Tag size={12} />
           </button>
           <button
+            className={`card-label-btn ${assigneePickerOpen ? 'active' : ''}`}
+            onClick={toggleAssigneePicker}
+            title="Atribuir membros"
+          >
+            <Users size={12} />
+          </button>
+          <button
             className={`card-label-btn ${dueDatePickerOpen ? 'active' : ''}`}
             onClick={openDueDatePicker}
             title="Definir prazo"
@@ -141,6 +184,23 @@ export default function Card({
             <Calendar size={12} />
           </button>
         </div>
+      )}
+
+      {/* Inline assignee picker */}
+      {assigneePickerOpen && !isOverlay && (
+        <AssigneePicker
+          cardId={card.id}
+          boardId={boardId}
+          boardMembers={boardMembers}
+          cardAssignees={cardAssignees}
+          socket={socket}
+          onAssigneeChange={
+            onAssigneeChange
+              ? (type, payload) => onAssigneeChange(card.id, type, payload)
+              : undefined
+          }
+          onClose={() => setAssigneePickerOpen(false)}
+        />
       )}
 
       {/* Inline label picker */}

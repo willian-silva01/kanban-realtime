@@ -11,10 +11,12 @@ export default function Column({
   socket,
   boardId,
   boardLabels,
+  boardMembers,
   activeLabelFilter,
   onCardLabelChange,
   onBoardLabelChange,
   onDueDateChange,
+  onAssigneeChange,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -46,9 +48,11 @@ export default function Column({
               socket={socket}
               boardId={boardId}
               boardLabels={boardLabels}
+              boardMembers={boardMembers}
               onCardLabelChange={onCardLabelChange}
               onBoardLabelChange={onBoardLabelChange}
               onDueDateChange={onDueDateChange}
+              onAssigneeChange={onAssigneeChange}
             />
           ))}
         </SortableContext>

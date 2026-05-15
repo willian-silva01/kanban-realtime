@@ -100,6 +100,11 @@ class BoardService {
                 labels: {
                   include: { label: true },
                 },
+                assignees: {
+                  include: {
+                    user: { select: { id: true, name: true, email: true } },
+                  },
+                },
               },
             },
           },

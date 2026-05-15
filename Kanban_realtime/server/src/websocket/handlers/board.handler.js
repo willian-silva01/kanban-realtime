@@ -23,13 +23,15 @@ module.exports = (io, socket) => {
       // estado recebido e em seguida drena a fila de ações offline.
       const columns = board.columns.map(({ cards: _cards, ...col }) => col);
       const cards = board.columns.flatMap((col) =>
-        col.cards.map(({ labels: cardLabels, ...card }) => ({
+        col.cards.map(({ labels: cardLabels, assignees: cardAssignees, ...card }) => ({
           ...card,
           labels: (cardLabels ?? []).map((cl) => cl.label),
+          assignees: (cardAssignees ?? []).map((ca) => ca.user),
         }))
       );
       const boardLabels = board.labels ?? [];
-      socket.emit('board:sync', { columns, cards, boardLabels });
+      const boardMembers = board.members.map((m) => m.user);
+      socket.emit('board:sync', { columns, cards, boardLabels, boardMembers });
 
       if (typeof callback === 'function') callback({ success: true, room });
     } catch (error) {
@@ -91,6 +93,16 @@ module.exports = (io, socket) => {
 
   socket.on('column:reorder', ({ boardId, columns }) => {
     socket.to(`board_${boardId}`).emit('column:reorder', { columns });
+  });
+
+  // ─── ASSIGNEES ───────────────────────────────────────────────────────────
+
+  socket.on('card:assignee:added', ({ boardId, cardId, assignee }) => {
+    socket.to(`board_${boardId}`).emit('card:assignee:added', { cardId, assignee });
+  });
+
+  socket.on('card:assignee:removed', ({ boardId, cardId, userId: assigneeUserId }) => {
+    socket.to(`board_${boardId}`).emit('card:assignee:removed', { cardId, userId: assigneeUserId });
   });
 
   // ─── LABELS ──────────────────────────────────────────────────────────────
