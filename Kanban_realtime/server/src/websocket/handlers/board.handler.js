@@ -10,12 +10,20 @@ module.exports = (io, socket) => {
     logger.debug(`[Socket] board:join — user=${userId} board=${boardId}`);
     const boardService = require('../../modules/board/board.service');
     try {
-      // Verifica permissão no board antes de entrar na room
-      await boardService._checkAccess(boardId, userId);
+      // getById já chama _checkAccess internamente; lança se não tiver permissão.
+      // Fazemos isso ANTES do socket.join para não admitir o socket na room sem acesso.
+      const board = await boardService.getById(boardId, userId);
 
       const room = `board_${boardId}`;
       socket.join(room);
       logger.info(`[Socket] user=${userId} entrou na room=${room}`);
+
+      // Emite estado completo do board apenas para este socket.
+      // Usado tanto na conexão inicial quanto na reconexão — o cliente aplica o
+      // estado recebido e em seguida drena a fila de ações offline.
+      const columns = board.columns.map(({ cards: _cards, ...col }) => col);
+      const cards = board.columns.flatMap((col) => col.cards);
+      socket.emit('board:sync', { columns, cards });
 
       if (typeof callback === 'function') callback({ success: true, room });
     } catch (error) {

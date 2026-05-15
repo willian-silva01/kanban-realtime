@@ -27,7 +27,7 @@ const BOARD_ID = 'board-demo';
 
 // ─── Tela de Board (área protegida) ─────────────────────────────────────────
 function BoardPage() {
-  const { socket, user, isConnected, logout } = useAuth();
+  const { socket, user, isConnected, isReconnecting, logout } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState([]);
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
@@ -116,11 +116,12 @@ function BoardPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             <div style={{
               width: 8, height: 8, borderRadius: '50%',
-              backgroundColor: isConnected ? '#10B981' : '#EF4444',
-              boxShadow: isConnected ? '0 0 6px #10B981' : 'none',
+              backgroundColor: isConnected ? '#10B981' : isReconnecting ? '#F59E0B' : '#EF4444',
+              boxShadow: isConnected ? '0 0 6px #10B981' : isReconnecting ? '0 0 6px #F59E0B' : 'none',
               transition: 'all 0.3s',
+              animation: isReconnecting ? 'pulse 1.2s ease-in-out infinite' : 'none',
             }} />
-            {isConnected ? 'Sincronizado' : 'Offline'}
+            {isConnected ? 'Sincronizado' : isReconnecting ? 'Reconectando...' : 'Offline'}
           </div>
 
           {/* Sino de Notificações */}

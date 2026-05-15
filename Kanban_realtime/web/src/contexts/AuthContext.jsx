@@ -42,6 +42,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   // true durante login/register e na restauração inicial de sessão
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -89,22 +90,37 @@ export function AuthProvider({ children }) {
       auth: { token: authToken },
       transports: ['websocket'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 30000,
+      randomizationFactor: 0.5,
     });
 
-    newSocket.on('connect', () => setIsConnected(true));
+    newSocket.on('connect', () => {
+      setIsConnected(true);
+      setIsReconnecting(false);
+    });
 
     newSocket.on('disconnect', (reason) => {
       setIsConnected(false);
       if (reason === 'io server disconnect') {
+        setIsReconnecting(false);
         logoutRef.current?.();
       }
+    });
+
+    newSocket.on('reconnect_attempt', () => {
+      setIsReconnecting(true);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      setIsReconnecting(false);
     });
 
     newSocket.on('connect_error', (err) => {
       setIsConnected(false);
       if (err.message === 'TOKEN_INVALID' || err.message === 'TOKEN_MISSING') {
+        setIsReconnecting(false);
         logoutRef.current?.();
       }
     });
@@ -124,6 +140,7 @@ export function AuthProvider({ children }) {
         socketRef.current = null;
         setSocket(null);
         setIsConnected(false);
+        setIsReconnecting(false);
       }
     }
 
@@ -232,12 +249,13 @@ export function AuthProvider({ children }) {
       socket,
       isAuthenticated,
       isConnected,
+      isReconnecting,
       authLoading,
       login,
       logout,
       register,
     }),
-    [user, token, socket, isAuthenticated, isConnected, authLoading, login, logout, register]
+    [user, token, socket, isAuthenticated, isConnected, isReconnecting, authLoading, login, logout, register]
   );
 
   return (

@@ -16,25 +16,16 @@ import Card from '../Card/Card';
 import CursorsLayer from './CursorsLayer';
 import './Board.css';
 
-// Board Virtual Inicial
-const initialColumns = [
-  { id: 'col-todo', title: 'To Do', boardId: 'b1' },
-  { id: 'col-doing', title: 'Doing', boardId: 'b1' },
-  { id: 'col-done', title: 'Done', boardId: 'b1' },
-];
-
-const initialCards = [
-  { id: 'card-1', columnId: 'col-todo', title: 'Criar Setup Vite + React', position: 0 },
-  { id: 'card-2', columnId: 'col-todo', title: 'Adicionar Tailwind / CSS', position: 1 },
-  { id: 'card-3', columnId: 'col-doing', title: 'Arrumar Sockets no Node.js', position: 0 },
-];
-
 export default function Board({ socket, boardId, user }) {
-  const [columns, setColumns] = useState(initialColumns);
-  const [cards, setCards] = useState(initialCards);
+  const [columns, setColumns] = useState([]);
+  const [cards, setCards] = useState([]);
   const [activeCard, setActiveCard] = useState(null);
-  
-  // Throttle Emission do Ponteiro Local 
+
+  // Fila de ações emitidas enquanto o socket estava desconectado.
+  // Drenada automaticamente após board:sync (que chega a cada reconexão).
+  const offlineQueueRef = useRef([]);
+
+  // Throttle Emission do Ponteiro Local
   const lastEmitTime = useRef(0);
   const THROTTLE_MS = 50;
 
@@ -48,11 +39,13 @@ export default function Board({ socket, boardId, user }) {
   useEffect(() => {
     if (!socket) return;
 
-    // CORRIGIDO (BUG-03): handlers nomeados para que socket.off() remova
-    // APENAS o listener registrado aqui, sem afetar outros componentes
-    // que possam escutar os mesmos eventos.
-    // Sem a referência, socket.off('card:move') remove TODOS os listeners
-    // do evento — inclusive os de outros componentes.
+    const onBoardSync = ({ columns: syncedColumns, cards: syncedCards }) => {
+      setColumns(syncedColumns);
+      setCards(syncedCards);
+      // Drena a fila offline após o estado do servidor ser aplicado
+      const queue = offlineQueueRef.current.splice(0);
+      queue.forEach(({ event, payload }) => socket.emit(event, payload));
+    };
 
     const onCardMove = (payload) => {
       const { card, fromColumnId, toColumnId } = payload;
@@ -66,10 +59,13 @@ export default function Board({ socket, boardId, user }) {
       });
     };
 
+    socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
 
     return () => {
+      socket.off('board:sync', onBoardSync);
       socket.off('card:move', onCardMove);
+      offlineQueueRef.current = [];
     };
   }, [socket]);
 
@@ -149,14 +145,18 @@ export default function Board({ socket, boardId, user }) {
     const colCards = cards.filter(c => c.columnId === activeCardData.columnId);
     const newPositionIndex = colCards.findIndex(c => c.id === activeId);
 
-    // * Disparar evento mágico Socket.IO *
     if (socket) {
-      socket.emit('card:move', {
+      const payload = {
         boardId,
         cardId: activeId,
         toColumnId: activeCardData.columnId,
-        newPosition: newPositionIndex
-      });
+        newPosition: newPositionIndex,
+      };
+      if (socket.connected) {
+        socket.emit('card:move', payload);
+      } else {
+        offlineQueueRef.current.push({ event: 'card:move', payload });
+      }
     }
   };
 
