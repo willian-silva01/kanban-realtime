@@ -20,6 +20,8 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
+  emailMentions Boolean  @default(true) @map("email_mentions")
+
   // Relacionamentos
   ownedBoards     Board[]         @relation("BoardOwner")
   boardMembers    BoardMember[]

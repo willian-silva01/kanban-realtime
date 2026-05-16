@@ -20,6 +20,31 @@ class NotificationService {
     });
   }
 
+  // Notificar apenas os usuários mencionados (não em lote do board inteiro)
+  async notifyMentioned(mentionedUserIds, causerUserId, type, entityId, message) {
+    try {
+      const targets = mentionedUserIds.filter((id) => id !== causerUserId);
+      if (targets.length === 0) return;
+
+      await prisma.notification.createMany({
+        data: targets.map((userId) => ({ userId, type, entityId, message })),
+      });
+
+      const recentNotifs = await prisma.notification.findMany({
+        where: { userId: { in: targets }, entityId, type },
+        orderBy: { createdAt: 'desc' },
+        take: targets.length,
+      });
+
+      const io = getIo();
+      for (const notif of recentNotifs) {
+        io.to(`user_${notif.userId}`).emit('notification:new', notif);
+      }
+    } catch (err) {
+      console.log('Error notifying mentioned users', err);
+    }
+  }
+
   // Criar e Emitir em Lote para o Board todo, exceto quem causou
   async notifyBoard(boardId, causerUserId, type, entityId, message) {
     try {

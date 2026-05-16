@@ -27,6 +27,13 @@ const env = {
   // Frontend
   FRONTEND_URL: process.env.FRONTEND_URL,
 
+  // SMTP — opcional; e-mails só são enviados se SMTP_HOST estiver definido
+  SMTP_HOST: process.env.SMTP_HOST || null,
+  SMTP_PORT: parseInt(process.env.SMTP_PORT, 10) || 587,
+  SMTP_USER: process.env.SMTP_USER || null,
+  SMTP_PASS: process.env.SMTP_PASS || null,
+  SMTP_FROM: process.env.SMTP_FROM || 'kanban@noreply.local',
+
   // Helpers
   isDev: process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production',

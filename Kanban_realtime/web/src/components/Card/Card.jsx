@@ -361,7 +361,7 @@ export default function Card({
         />
       )}
 
-      <CommentsPanel cardId={card.id} socket={socket} />
+      <CommentsPanel cardId={card.id} socket={socket} boardMembers={boardMembers} />
     </div>
   );
 }

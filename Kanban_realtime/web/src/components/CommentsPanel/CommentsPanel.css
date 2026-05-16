@@ -3,3 +3,70 @@
   padding: 8px;
   border-radius: 6px;
 }
+
+/* ── Mention chip (renderizado no corpo do comentário) ─────── */
+.mention-chip {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--brand, #6366f1);
+  border-radius: 4px;
+  padding: 0 4px;
+  font-size: 0.8em;
+  font-weight: 600;
+  cursor: default;
+}
+
+/* ── Dropdown de sugestão de membros ──────────────────────── */
+.mention-dropdown {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #1e1e2e;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  overflow: hidden;
+  z-index: 100;
+}
+
+.mention-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.mention-dropdown-item:hover,
+.mention-dropdown-item--active {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.mention-dropdown-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--brand, #6366f1);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mention-dropdown-name {
+  font-size: 0.82rem;
+  color: #e2e8f0;
+  font-weight: 500;
+  flex: 1;
+}
+
+.mention-dropdown-email {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.4);
+}
+

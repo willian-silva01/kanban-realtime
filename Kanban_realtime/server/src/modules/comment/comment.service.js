@@ -3,7 +3,17 @@ const ApiError = require('../../utils/ApiError');
 const boardService = require('../board/board.service');
 const activityService = require('../activity/activity.service');
 const notificationService = require('../notification/notification.service');
+const emailService = require('../email/email.service');
 const { getIo } = require('../../websocket/socket');
+
+// Extrai UUIDs de todas as menções @[uuid] no texto
+function parseMentions(content) {
+  const re = /@\[([0-9a-f-]{36})\]/gi;
+  const ids = [];
+  let m;
+  while ((m = re.exec(content)) !== null) ids.push(m[1]);
+  return [...new Set(ids)];
+}
 
 class CommentService {
   async list(cardId, userId) {
@@ -66,14 +76,49 @@ class CommentService {
       console.log('Socket IGNORADO no REST mode limpo', err.message);
     }
 
-    // ─── Despachar para Notificações ──────────────────────────────────
+    // ─── Notificar board (todos os membros exceto autor) ──────────────
     await notificationService.notifyBoard(
-       card.column.boardId, 
-       userId, 
-       'COMMENT_CREATED', 
-       cardId, 
+       card.column.boardId,
+       userId,
+       'COMMENT_CREATED',
+       cardId,
        `${log.user.name} comentou no card "${card.title}"`
     );
+
+    // ─── Processar menções @[userId] ──────────────────────────────────
+    const mentionedIds = parseMentions(content);
+    if (mentionedIds.length > 0) {
+      // Valida que os IDs mencionados são realmente membros do board
+      const members = await prisma.boardMember.findMany({
+        where: { boardId: card.column.boardId, userId: { in: mentionedIds } },
+        include: { user: { select: { id: true, name: true, email: true, emailMentions: true } } },
+      });
+
+      const validIds = members.map((m) => m.user.id);
+
+      await notificationService.notifyMentioned(
+        validIds,
+        userId,
+        'MENTIONED',
+        cardId,
+        `${log.user.name} mencionou você no card "${card.title}"`
+      );
+
+      // E-mail para quem tem emailMentions = true
+      const board = await prisma.board.findUnique({ where: { id: card.column.boardId }, select: { name: true } });
+      for (const member of members) {
+        if (member.user.id !== userId && member.user.emailMentions) {
+          emailService.sendMentionEmail({
+            toEmail: member.user.email,
+            toName: member.user.name,
+            mentionedBy: log.user.name,
+            cardTitle: card.title,
+            boardName: board?.name ?? '',
+            commentContent: content,
+          }).catch(() => {}); // fire-and-forget, erros não bloqueiam a resposta
+        }
+      }
+    }
 
     return comment;
   }
