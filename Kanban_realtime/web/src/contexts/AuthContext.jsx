@@ -142,7 +142,7 @@ export function AuthProvider({ children }) {
       setToken(authToken);
       setUser(userData);
 
-      navigate('/board');
+      navigate('/dashboard');
       return { success: true };
     } catch (err) {
       const message =
@@ -170,7 +170,7 @@ export function AuthProvider({ children }) {
       setToken(authToken);
       setUser(userData);
 
-      navigate('/board');
+      navigate('/dashboard');
       return { success: true };
     } catch (err) {
       const message =

@@ -10,6 +10,7 @@ const createBoardSchema = z.object({
     .min(1, 'Nome do board não pode ser vazio')
     .max(100, 'Nome do board deve ter no máximo 100 caracteres')
     .trim(),
+  workspaceId: z.string().uuid('workspaceId inválido').optional(),
 });
 
 const updateBoardSchema = z.object({

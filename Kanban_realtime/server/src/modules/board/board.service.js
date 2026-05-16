@@ -41,12 +41,12 @@ class BoardService {
   /**
    * Criar novo board
    */
-  async create(userId, { name }) {
+  async create(userId, { name, workspaceId }) {
     const board = await prisma.board.create({
       data: {
         name,
         ownerId: userId,
-        // Automaticamente adicionar o criador como membro com role 'admin'
+        ...(workspaceId ? { workspaceId } : {}),
         members: {
           create: {
             userId,

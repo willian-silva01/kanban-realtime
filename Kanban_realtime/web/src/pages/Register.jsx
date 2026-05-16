@@ -5,7 +5,7 @@
  * - Validação completa no frontend (nome, email, senha, confirmação)
  * - Feedback de força da senha
  * - Loading state e tratamento de erros da API
- * - Redireciona para /board após cadastro bem-sucedido
+ * - Redireciona para /dashboard após cadastro bem-sucedido
  * - Design glassmorphism consistente com o Login
  */
 
@@ -50,7 +50,7 @@ export default function Register() {
 
   // Redireciona se já autenticado
   useEffect(() => {
-    if (isAuthenticated) navigate('/board', { replace: true });
+    if (isAuthenticated) navigate('/dashboard', { replace: true });
   }, [isAuthenticated, navigate]);
 
   // ─── Validação local ─────────────────────────────────────────────────────

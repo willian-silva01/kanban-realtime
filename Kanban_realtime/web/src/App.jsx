@@ -2,17 +2,18 @@
  * App.jsx — Roteamento principal da aplicação
  *
  * Estrutura:
- *   /             → redireciona para /login
  *   /login        → tela de login (pública)
  *   /register     → tela de cadastro (pública)
- *   /board        → board principal (PROTEGIDO — requer JWT)
+ *   /dashboard    → seleção de workspace e boards (PROTEGIDO)
+ *   /board/:id    → board principal (PROTEGIDO)
  */
 
 import React, { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import Board from './components/Board/Board';
 import ActivityPanel from './components/ActivityPanel/ActivityPanel';
@@ -25,12 +26,9 @@ import { usePresenceStore } from './stores/presenceStore';
 import { useBoardStore } from './stores/boardStore';
 import './index.css';
 
-// ─── Constante do Board ──────────────────────────────────────────────────────
-// TODO: Substituir por seleção dinâmica do board (lista de boards do usuário)
-const BOARD_ID = 'board-demo';
-
 // ─── Tela de Board (área protegida) ─────────────────────────────────────────
 function BoardPage() {
+  const { boardId } = useParams();
   const { logout } = useAuth();
   const socket = usePresenceStore((s) => s.socket);
   const isConnected = usePresenceStore((s) => s.isConnected);
@@ -43,17 +41,17 @@ function BoardPage() {
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !boardId) return;
 
     const joinBoard = () => {
       setBoardError(null);
-      socket.emit('board:join', { boardId: BOARD_ID }, (response) => {
+      socket.emit('board:join', { boardId }, (response) => {
         if (response && !response.success) {
           setBoardError(response.message || 'Não foi possível entrar no board.');
         }
       });
 
-      socket.emit('presence:join', { boardId: BOARD_ID, name: user?.name || 'Anônimo' });
+      socket.emit('presence:join', { boardId, name: user?.name || 'Anônimo' });
     };
 
     const onPresenceUpdate = (users) => setOnlineUsers(users);
@@ -70,10 +68,10 @@ function BoardPage() {
       socket.off('presence:update', onPresenceUpdate);
 
       if (socket.connected) {
-        socket.emit('presence:leave', { boardId: BOARD_ID });
+        socket.emit('presence:leave', { boardId });
       }
     };
-  }, [socket, user, setBoardError, setOnlineUsers]);
+  }, [socket, boardId, user, setBoardError, setOnlineUsers]);
 
   return (
     <div className="app-container">
@@ -165,7 +163,7 @@ function BoardPage() {
       </header>
 
       {/* ─── Activity Panel ──────────────────────────────────── */}
-      <ActivityPanel socket={socket} boardId={BOARD_ID} />
+      <ActivityPanel socket={socket} boardId={boardId} />
 
       {/* ─── Board Principal ─────────────────────────────────── */}
       {boardError ? (
@@ -177,7 +175,7 @@ function BoardPage() {
             {boardError}
           </p>
           <button
-            onClick={() => socket?.connected && socket.emit('board:join', { boardId: BOARD_ID }, (res) => {
+            onClick={() => socket?.connected && socket.emit('board:join', { boardId }, (res) => {
               if (res?.success) setBoardError(null);
               else setBoardError(res?.message || 'Erro ao tentar novamente.');
             })}
@@ -197,7 +195,7 @@ function BoardPage() {
           </button>
         </div>
       ) : (
-        <Board socket={socket} boardId={BOARD_ID} user={user} />
+        <Board socket={socket} boardId={boardId} user={user} />
       )}
     </div>
   );
@@ -211,9 +209,19 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* Página Protegida */}
+      {/* Dashboard — seleção de workspace */}
       <Route
-        path="/board"
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Board dinâmico */}
+      <Route
+        path="/board/:boardId"
         element={
           <PrivateRoute>
             <BoardPage />
@@ -221,8 +229,11 @@ export default function App() {
         }
       />
 
-      {/* Fallback → redireciona para Login */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Compatibilidade com /board sem ID → redireciona para dashboard */}
+      <Route path="/board" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Fallback → redireciona para dashboard (ou login via PrivateRoute) */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

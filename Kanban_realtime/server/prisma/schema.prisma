@@ -23,33 +23,75 @@ model User {
   emailMentions Boolean  @default(true) @map("email_mentions")
 
   // Relacionamentos
-  ownedBoards     Board[]         @relation("BoardOwner")
-  boardMembers    BoardMember[]
-  createdCards    Card[]          @relation("CardCreator")
-  activityLogs    ActivityLog[]
-  comments        Comment[]
-  notifications   Notification[]  @relation("UserNotifications")
-  cardAssignments CardAssignee[]  @relation("CardAssigneeUser")
+  ownedBoards      Board[]           @relation("BoardOwner")
+  boardMembers     BoardMember[]
+  createdCards     Card[]            @relation("CardCreator")
+  activityLogs     ActivityLog[]
+  comments         Comment[]
+  notifications    Notification[]    @relation("UserNotifications")
+  cardAssignments  CardAssignee[]    @relation("CardAssigneeUser")
+  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
+  workspaceMembers WorkspaceMember[]
 
   @@map("users")
 }
 
-// ── Board ────────────────────────────────────
-model Board {
+// ── Workspace ─────────────────────────────────
+model Workspace {
   id        String   @id @default(uuid())
   name      String   @db.VarChar(100)
+  slug      String   @unique @db.VarChar(120)
   ownerId   String   @map("owner_id")
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  owner   User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members WorkspaceMember[]
+  boards  Board[]
+
+  @@index([ownerId])
+  @@map("workspaces")
+}
+
+// ── WorkspaceMember ───────────────────────────
+model WorkspaceMember {
+  workspaceId String        @map("workspace_id")
+  userId      String        @map("user_id")
+  role        WorkspaceRole @default(member)
+  joinedAt    DateTime      @default(now()) @map("joined_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+  @@index([userId])
+  @@map("workspace_members")
+}
+
+enum WorkspaceRole {
+  owner
+  admin
+  member
+}
+
+// ── Board ────────────────────────────────────
+model Board {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(100)
+  ownerId     String   @map("owner_id")
+  workspaceId String?  @map("workspace_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
   owner         User          @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  workspace     Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
   members       BoardMember[]
   columns       Column[]
   activityLogs  ActivityLog[]
   labels        Label[]
 
-  @@index([ownerId]) // Performance para buscar boards do criador
+  @@index([ownerId])
+  @@index([workspaceId])
   @@map("boards")
 }
 

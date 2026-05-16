@@ -27,7 +27,7 @@ export default function Login() {
   // Se já autenticado, redireciona direto para o board
   useEffect(() => {
     if (isAuthenticated) {
-      const destination = location.state?.from?.pathname || '/board';
+      const destination = location.state?.from?.pathname || '/dashboard';
       navigate(destination, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
