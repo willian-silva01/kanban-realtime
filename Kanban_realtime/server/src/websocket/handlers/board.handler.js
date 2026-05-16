@@ -23,10 +23,11 @@ module.exports = (io, socket) => {
       // estado recebido e em seguida drena a fila de ações offline.
       const columns = board.columns.map(({ cards: _cards, ...col }) => col);
       const cards = board.columns.flatMap((col) =>
-        col.cards.map(({ labels: cardLabels, assignees: cardAssignees, ...card }) => ({
+        col.cards.map(({ labels: cardLabels, assignees: cardAssignees, checklists: cardChecklists, ...card }) => ({
           ...card,
           labels: (cardLabels ?? []).map((cl) => cl.label),
           assignees: (cardAssignees ?? []).map((ca) => ca.user),
+          checklists: cardChecklists ?? [],
         }))
       );
       const boardLabels = board.labels ?? [];
@@ -129,6 +130,40 @@ module.exports = (io, socket) => {
 
   socket.on('label:deleted', ({ boardId, labelId }) => {
     socket.to(`board_${boardId}`).emit('label:deleted', { labelId });
+  });
+
+  // ─── CHECKLISTS ──────────────────────────────────────────────────────────
+
+  socket.on('checklist:created', ({ boardId, cardId, checklist }) => {
+    socket.to(`board_${boardId}`).emit('checklist:created', { cardId, checklist });
+  });
+
+  socket.on('checklist:updated', ({ boardId, cardId, checklistId, title }) => {
+    socket.to(`board_${boardId}`).emit('checklist:updated', { cardId, checklistId, title });
+  });
+
+  socket.on('checklist:deleted', ({ boardId, cardId, checklistId }) => {
+    socket.to(`board_${boardId}`).emit('checklist:deleted', { cardId, checklistId });
+  });
+
+  socket.on('checklist:item:added', ({ boardId, cardId, checklistId, item }) => {
+    socket.to(`board_${boardId}`).emit('checklist:item:added', { cardId, checklistId, item });
+  });
+
+  socket.on('checklist:item:toggled', ({ boardId, cardId, checklistId, itemId, completed }) => {
+    socket.to(`board_${boardId}`).emit('checklist:item:toggled', { cardId, checklistId, itemId, completed });
+  });
+
+  socket.on('checklist:item:updated', ({ boardId, cardId, checklistId, itemId, text }) => {
+    socket.to(`board_${boardId}`).emit('checklist:item:updated', { cardId, checklistId, itemId, text });
+  });
+
+  socket.on('checklist:item:deleted', ({ boardId, cardId, checklistId, itemId }) => {
+    socket.to(`board_${boardId}`).emit('checklist:item:deleted', { cardId, checklistId, itemId });
+  });
+
+  socket.on('checklist:items:reordered', ({ boardId, cardId, checklistId, items }) => {
+    socket.to(`board_${boardId}`).emit('checklist:items:reordered', { cardId, checklistId, items });
   });
 
   // ─── CURSORES COOPERATIVOS ───────────────────────────────────────────────

@@ -21,6 +21,7 @@ const commentRoutes = require('./modules/comment/comment.routes');
 const notificationRoutes = require('./modules/notification/notification.routes');
 const { boardLabelRouter, cardLabelRouter } = require('./modules/label/label.routes');
 const { cardAssigneeRouter } = require('./modules/assignee/assignee.routes');
+const { cardChecklistRouter, checklistRouter } = require('./modules/checklist/checklist.routes');
 
 // Inicializar o Express
 const app = express();
@@ -117,6 +118,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/boards/:boardId/labels', boardLabelRouter);
 app.use('/api/cards/:cardId/labels', cardLabelRouter);
 app.use('/api/cards/:cardId/assignees', cardAssigneeRouter);
+app.use('/api/cards/:cardId/checklists', cardChecklistRouter);
+app.use('/api/checklists/:checklistId', checklistRouter);
 
 // ─── Rota 404 ───────────────────────────────
 app.use((req, res) => {

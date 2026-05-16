@@ -105,6 +105,10 @@ class BoardService {
                     user: { select: { id: true, name: true, email: true } },
                   },
                 },
+                checklists: {
+                  orderBy: { position: 'asc' },
+                  include: { items: { orderBy: { position: 'asc' } } },
+                },
               },
             },
           },

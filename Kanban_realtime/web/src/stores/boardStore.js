@@ -104,6 +104,106 @@ export const useBoardStore = create(
           ),
         })),
 
+      // Checklists
+      addChecklist: (cardId, checklist) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? { ...c, checklists: [...(c.checklists ?? []), checklist] }
+              : c
+          ),
+        })),
+
+      updateChecklist: (cardId, checklistId, updates) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  checklists: (c.checklists ?? []).map((cl) =>
+                    cl.id === checklistId ? { ...cl, ...updates } : cl
+                  ),
+                }
+              : c
+          ),
+        })),
+
+      deleteChecklist: (cardId, checklistId) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? { ...c, checklists: (c.checklists ?? []).filter((cl) => cl.id !== checklistId) }
+              : c
+          ),
+        })),
+
+      addChecklistItem: (cardId, checklistId, item) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  checklists: (c.checklists ?? []).map((cl) =>
+                    cl.id === checklistId
+                      ? { ...cl, items: [...(cl.items ?? []), item] }
+                      : cl
+                  ),
+                }
+              : c
+          ),
+        })),
+
+      updateChecklistItem: (cardId, checklistId, itemId, updates) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  checklists: (c.checklists ?? []).map((cl) =>
+                    cl.id === checklistId
+                      ? {
+                          ...cl,
+                          items: (cl.items ?? []).map((item) =>
+                            item.id === itemId ? { ...item, ...updates } : item
+                          ),
+                        }
+                      : cl
+                  ),
+                }
+              : c
+          ),
+        })),
+
+      deleteChecklistItem: (cardId, checklistId, itemId) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  checklists: (c.checklists ?? []).map((cl) =>
+                    cl.id === checklistId
+                      ? { ...cl, items: (cl.items ?? []).filter((item) => item.id !== itemId) }
+                      : cl
+                  ),
+                }
+              : c
+          ),
+        })),
+
+      reorderChecklistItems: (cardId, checklistId, items) =>
+        set((s) => ({
+          cards: s.cards.map((c) =>
+            c.id === cardId
+              ? {
+                  ...c,
+                  checklists: (c.checklists ?? []).map((cl) =>
+                    cl.id === checklistId ? { ...cl, items } : cl
+                  ),
+                }
+              : c
+          ),
+        })),
+
       // Board labels
       addBoardLabel: (label) => set((s) => ({ boardLabels: [...s.boardLabels, label] })),
       updateBoardLabel: (label) =>

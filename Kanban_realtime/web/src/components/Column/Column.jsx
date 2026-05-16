@@ -19,6 +19,7 @@ export default function Column({
   onDueDateChange,
   onAssigneeChange,
   onDescriptionChange,
+  onChecklistChange,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -57,6 +58,7 @@ export default function Column({
               onDueDateChange={onDueDateChange}
               onAssigneeChange={onAssigneeChange}
               onDescriptionChange={onDescriptionChange}
+              onChecklistChange={onChecklistChange}
             />
           ))}
         </SortableContext>

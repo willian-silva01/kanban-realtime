@@ -108,11 +108,12 @@ model Card {
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  column    Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
-  creator   User          @relation("CardCreator", fields: [createdBy], references: [id])
-  comments  Comment[]
-  labels    CardLabel[]
-  assignees CardAssignee[]
+  column     Column        @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  creator    User          @relation("CardCreator", fields: [createdBy], references: [id])
+  comments   Comment[]
+  labels     CardLabel[]
+  assignees  CardAssignee[]
+  checklists Checklist[]
 
   // Índice composto para buscar os cartões da coluna + ordenação rápida da renderização
   @@index([columnId, position])
@@ -194,6 +195,37 @@ model CardLabel {
 
   @@id([cardId, labelId])
   @@map("card_labels")
+}
+
+// ── Checklist ────────────────────────────────
+model Checklist {
+  id        String   @id @default(uuid())
+  cardId    String   @map("card_id")
+  title     String   @db.VarChar(100)
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  card  Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  items ChecklistItem[]
+
+  @@index([cardId, position])
+  @@map("checklists")
+}
+
+// ── ChecklistItem ─────────────────────────────
+model ChecklistItem {
+  id          String   @id @default(uuid())
+  checklistId String   @map("checklist_id")
+  text        String   @db.VarChar(500)
+  completed   Boolean  @default(false)
+  position    Int
+  completedBy String?  @map("completed_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  checklist Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+
+  @@index([checklistId, position])
+  @@map("checklist_items")
 }
 
 // ── Notification ─────────────────────────────

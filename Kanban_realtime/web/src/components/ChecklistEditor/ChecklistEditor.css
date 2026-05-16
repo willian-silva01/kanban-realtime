@@ -1,0 +1,276 @@
+.cl-editor {
+  margin-top: 8px;
+  background: #1e2130;
+  border: 1px solid #2e3347;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.78rem;
+}
+
+.cl-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Checklist block ── */
+
+.cl-block {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2e3347;
+}
+
+.cl-block:last-of-type {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.cl-block-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.cl-block-title {
+  flex: 1;
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+}
+
+.cl-progress-label {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.cl-block-del {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.cl-block-header:hover .cl-block-del {
+  opacity: 1;
+}
+
+.cl-block-del:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* ── Progress bar ── */
+
+.cl-progress-bar {
+  height: 4px;
+  background: #2e3347;
+  border-radius: 2px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.cl-progress-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 2px;
+  transition: width 0.25s ease;
+}
+
+/* ── Item row ── */
+
+.cl-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 0;
+}
+
+.cl-item-grip {
+  color: #3f4a5e;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cl-item-grip:active {
+  cursor: grabbing;
+}
+
+.cl-item-check {
+  width: 13px;
+  height: 13px;
+  accent-color: #6a38e3;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cl-item-text {
+  flex: 1;
+  color: #cbd5e1;
+  cursor: text;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.cl-item-text--done {
+  text-decoration: line-through;
+  color: #475569;
+}
+
+.cl-item-input {
+  flex: 1;
+  background: #0f1420;
+  border: 1px solid #6a38e3;
+  border-radius: 4px;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  padding: 2px 5px;
+  outline: none;
+}
+
+.cl-item-del {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.cl-item:hover .cl-item-del {
+  opacity: 1;
+}
+
+.cl-item-del:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+
+/* ── Add item row ── */
+
+.cl-new-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.cl-new-item-input {
+  flex: 1;
+  background: #0f1420;
+  border: 1px solid #6a38e3;
+  border-radius: 4px;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  padding: 3px 6px;
+  outline: none;
+}
+
+.cl-add-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: #6a38e3;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 3px 2px;
+  margin-top: 2px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.cl-add-item-btn:hover {
+  color: #8b5cf6;
+}
+
+/* ── New checklist row ── */
+
+.cl-new-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.cl-new-input {
+  flex: 1;
+  background: #0f1420;
+  border: 1px solid #6a38e3;
+  border-radius: 4px;
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  padding: 4px 7px;
+  outline: none;
+}
+
+.cl-add-checklist-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px dashed #2e3347;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  width: 100%;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.cl-add-checklist-btn:hover {
+  border-color: #6a38e3;
+  color: #8b5cf6;
+}
+
+/* ── Shared buttons ── */
+
+.cl-btn {
+  background: #2e3347;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.cl-btn:hover {
+  background: #3a4157;
+}
+
+.cl-btn--primary {
+  background: #6a38e3;
+  color: #fff;
+}
+
+.cl-btn--primary:hover {
+  background: #7c3aed;
+}

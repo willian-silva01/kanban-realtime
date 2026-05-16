@@ -45,6 +45,13 @@ export default function Board({ socket, boardId, user }) {
     addBoardLabel,
     updateBoardLabel,
     deleteBoardLabel,
+    addChecklist,
+    updateChecklist,
+    deleteChecklist,
+    addChecklistItem,
+    updateChecklistItem,
+    deleteChecklistItem,
+    reorderChecklistItems,
     toggleLabelFilter,
     clearActiveLabelFilter,
     toggleMyCardsFilter,
@@ -80,6 +87,15 @@ export default function Board({ socket, boardId, user }) {
     updateCardDescription(cardId, description);
   };
 
+  const handleChecklistChange = (cardId, type, payload) => {
+    if (type === 'add_checklist') addChecklist(cardId, payload);
+    else if (type === 'delete_checklist') deleteChecklist(cardId, payload);
+    else if (type === 'add_item') addChecklistItem(cardId, payload.checklistId, payload.item);
+    else if (type === 'toggle_item') updateChecklistItem(cardId, payload.checklistId, payload.itemId, payload.updates);
+    else if (type === 'delete_item') deleteChecklistItem(cardId, payload.checklistId, payload.itemId);
+    else if (type === 'reorder_items') reorderChecklistItems(cardId, payload.checklistId, payload.items);
+  };
+
   const handleBoardLabelChange = (type, payload) => {
     if (type === 'create') addBoardLabel(payload);
     else if (type === 'update') updateBoardLabel(payload);
@@ -111,6 +127,21 @@ export default function Board({ socket, boardId, user }) {
     const onDescriptionUpdated = ({ cardId, description }) =>
       updateCardDescription(cardId, description);
 
+    const onChecklistCreated = ({ cardId, checklist }) => addChecklist(cardId, checklist);
+    const onChecklistUpdated = ({ cardId, checklistId, title }) =>
+      updateChecklist(cardId, checklistId, { title });
+    const onChecklistDeleted = ({ cardId, checklistId }) => deleteChecklist(cardId, checklistId);
+    const onChecklistItemAdded = ({ cardId, checklistId, item }) =>
+      addChecklistItem(cardId, checklistId, item);
+    const onChecklistItemToggled = ({ cardId, checklistId, itemId, completed }) =>
+      updateChecklistItem(cardId, checklistId, itemId, { completed });
+    const onChecklistItemUpdated = ({ cardId, checklistId, itemId, text }) =>
+      updateChecklistItem(cardId, checklistId, itemId, { text });
+    const onChecklistItemDeleted = ({ cardId, checklistId, itemId }) =>
+      deleteChecklistItem(cardId, checklistId, itemId);
+    const onChecklistItemsReordered = ({ cardId, checklistId, items }) =>
+      reorderChecklistItems(cardId, checklistId, items);
+
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
     socket.on('card:label:added', onCardLabelAdded);
@@ -122,6 +153,14 @@ export default function Board({ socket, boardId, user }) {
     socket.on('card:assignee:added', onAssigneeAdded);
     socket.on('card:assignee:removed', onAssigneeRemoved);
     socket.on('card:description:updated', onDescriptionUpdated);
+    socket.on('checklist:created', onChecklistCreated);
+    socket.on('checklist:updated', onChecklistUpdated);
+    socket.on('checklist:deleted', onChecklistDeleted);
+    socket.on('checklist:item:added', onChecklistItemAdded);
+    socket.on('checklist:item:toggled', onChecklistItemToggled);
+    socket.on('checklist:item:updated', onChecklistItemUpdated);
+    socket.on('checklist:item:deleted', onChecklistItemDeleted);
+    socket.on('checklist:items:reordered', onChecklistItemsReordered);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -135,6 +174,14 @@ export default function Board({ socket, boardId, user }) {
       socket.off('card:assignee:added', onAssigneeAdded);
       socket.off('card:assignee:removed', onAssigneeRemoved);
       socket.off('card:description:updated', onDescriptionUpdated);
+      socket.off('checklist:created', onChecklistCreated);
+      socket.off('checklist:updated', onChecklistUpdated);
+      socket.off('checklist:deleted', onChecklistDeleted);
+      socket.off('checklist:item:added', onChecklistItemAdded);
+      socket.off('checklist:item:toggled', onChecklistItemToggled);
+      socket.off('checklist:item:updated', onChecklistItemUpdated);
+      socket.off('checklist:item:deleted', onChecklistItemDeleted);
+      socket.off('checklist:items:reordered', onChecklistItemsReordered);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -333,6 +380,7 @@ export default function Board({ socket, boardId, user }) {
                 onDueDateChange={handleDueDateChange}
                 onAssigneeChange={handleAssigneeChange}
                 onDescriptionChange={handleDescriptionChange}
+                onChecklistChange={handleChecklistChange}
               />
             ))}
           </SortableContext>

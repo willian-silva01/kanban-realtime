@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users, RefreshCw, FileText } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
 import LabelPicker from '../LabelPicker/LabelPicker';
 import AssigneePicker from '../AssigneePicker/AssigneePicker';
 import MarkdownEditor from '../MarkdownEditor/MarkdownEditor';
+import ChecklistEditor from '../ChecklistEditor/ChecklistEditor';
 import api from '../../services/api';
 import './Card.css';
 import '../AssigneePicker/AssigneePicker.css';
@@ -59,12 +60,14 @@ export default function Card({
   onDueDateChange,
   onAssigneeChange,
   onDescriptionChange,
+  onChecklistChange,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [assigneePickerOpen, setAssigneePickerOpen] = useState(false);
   const [dueDatePickerOpen, setDueDatePickerOpen] = useState(false);
   const [descEditorOpen, setDescEditorOpen] = useState(false);
   const [dueDateInput, setDueDateInput] = useState('');
+  const [checklistEditorOpen, setChecklistEditorOpen] = useState(false);
   const [savingDueDate, setSavingDueDate] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
 
@@ -82,7 +85,14 @@ export default function Card({
   const classNames = `card ${isOverlay ? 'card-ghost' : ''}`;
   const cardLabels = card.labels ?? [];
   const cardAssignees = card.assignees ?? [];
+  const cardChecklists = card.checklists ?? [];
   const dueDateStatus = getDueDateStatus(card.dueDate);
+
+  const checklistTotalItems = cardChecklists.reduce((s, cl) => s + (cl.items?.length ?? 0), 0);
+  const checklistDoneItems = cardChecklists.reduce(
+    (s, cl) => s + (cl.items?.filter((i) => i.completed).length ?? 0),
+    0
+  );
 
   const togglePicker = (e) => {
     e.stopPropagation();
@@ -139,6 +149,11 @@ export default function Card({
     }
   };
 
+  const toggleChecklistEditor = (e) => {
+    e.stopPropagation();
+    setChecklistEditorOpen((v) => !v);
+  };
+
   return (
     <div ref={setNodeRef} style={style} className={classNames} {...attributes} {...listeners}>
       {isPending && (
@@ -180,6 +195,17 @@ export default function Card({
         >
           <Calendar size={11} />
           {formatDueDate(card.dueDate)}
+        </div>
+      )}
+
+      {/* Checklist progress badge */}
+      {checklistTotalItems > 0 && (
+        <div
+          className={`card-checklist-badge ${checklistDoneItems === checklistTotalItems ? 'card-checklist-badge--done' : ''}`}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <CheckSquare size={11} />
+          {checklistDoneItems}/{checklistTotalItems}
         </div>
       )}
 
@@ -232,6 +258,13 @@ export default function Card({
             title="Editar descrição"
           >
             <FileText size={12} />
+          </button>
+          <button
+            className={`card-label-btn ${checklistEditorOpen ? 'active' : ''}`}
+            onClick={toggleChecklistEditor}
+            title="Checklists"
+          >
+            <CheckSquare size={12} />
           </button>
         </div>
       )}
@@ -313,6 +346,17 @@ export default function Card({
           initialValue={card.description ?? ''}
           onSave={handleDescriptionSave}
           saving={savingDescription}
+        />
+      )}
+
+      {/* Inline checklist editor */}
+      {checklistEditorOpen && !isOverlay && (
+        <ChecklistEditor
+          cardId={card.id}
+          checklists={cardChecklists}
+          boardId={boardId}
+          socket={socket}
+          onChecklistChange={onChecklistChange}
         />
       )}
 
