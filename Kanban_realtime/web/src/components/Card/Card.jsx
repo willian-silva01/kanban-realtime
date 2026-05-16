@@ -51,6 +51,7 @@ export default function Card({
   card,
   isOverlay,
   isPending = false,
+  isDimmed = false,
   socket,
   boardId,
   boardLabels = [],
@@ -82,7 +83,7 @@ export default function Card({
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const classNames = `card ${isOverlay ? 'card-ghost' : ''}`;
+  const classNames = `card ${isOverlay ? 'card-ghost' : ''} ${isDimmed ? 'card-dimmed' : ''}`;
   const cardLabels = card.labels ?? [];
   const cardAssignees = card.assignees ?? [];
   const cardChecklists = card.checklists ?? [];

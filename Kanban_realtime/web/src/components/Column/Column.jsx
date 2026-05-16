@@ -5,6 +5,24 @@ import Card from '../Card/Card';
 import { Plus } from 'lucide-react';
 import './Column.css';
 
+function cardMatchesSearch(card, query) {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  return (
+    card.title?.toLowerCase().includes(q) ||
+    card.description?.toLowerCase().includes(q) ||
+    card.labels?.some((l) => l.name?.toLowerCase().includes(q)) ||
+    card.assignees?.some(
+      (a) => a.name?.toLowerCase().includes(q) || a.email?.toLowerCase().includes(q)
+    ) ||
+    card.checklists?.some(
+      (cl) =>
+        cl.title?.toLowerCase().includes(q) ||
+        cl.items?.some((item) => item.text?.toLowerCase().includes(q))
+    )
+  );
+}
+
 export default function Column({
   column,
   cards,
@@ -12,7 +30,7 @@ export default function Column({
   boardId,
   boardLabels,
   boardMembers,
-  activeLabelFilter,
+  searchQuery,
   pendingCardIds,
   onCardLabelChange,
   onBoardLabelChange,
@@ -31,20 +49,21 @@ export default function Column({
     transform: CSS.Transform.toString(transform),
   };
 
-  const visibleCards = activeLabelFilter
-    ? cards.filter((c) => c.labels?.some((l) => l.id === activeLabelFilter))
-    : cards;
+  const trimmedQuery = searchQuery?.trim() ?? '';
+  const visibleCount = trimmedQuery
+    ? cards.filter((c) => cardMatchesSearch(c, trimmedQuery)).length
+    : cards.length;
 
   return (
     <div ref={setNodeRef} style={style} className="column" {...attributes} {...listeners}>
       <div className="column-header">
         {column.name || column.title}
-        <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{visibleCards.length}</span>
+        <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{visibleCount}</span>
       </div>
 
       <div className="column-content animate-slide">
-        <SortableContext items={visibleCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          {visibleCards.map((card) => (
+        <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          {cards.map((card) => (
             <Card
               key={card.id}
               card={card}
@@ -53,6 +72,7 @@ export default function Column({
               boardLabels={boardLabels}
               boardMembers={boardMembers}
               isPending={pendingCardIds?.has(card.id) ?? false}
+              isDimmed={trimmedQuery ? !cardMatchesSearch(card, trimmedQuery) : false}
               onCardLabelChange={onCardLabelChange}
               onBoardLabelChange={onBoardLabelChange}
               onDueDateChange={onDueDateChange}

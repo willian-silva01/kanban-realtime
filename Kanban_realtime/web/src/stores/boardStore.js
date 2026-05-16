@@ -15,6 +15,7 @@ export const useBoardStore = create(
       activeLabelFilter: null,
       myCardsFilter: false,
       sortByDueDate: false,
+      searchQuery: '',
 
       // Board sync
       setBoardSync: ({ columns, cards, boardLabels, boardMembers }) =>
@@ -36,6 +37,9 @@ export const useBoardStore = create(
       clearActiveLabelFilter: () => set({ activeLabelFilter: null }),
       toggleMyCardsFilter: () => set((s) => ({ myCardsFilter: !s.myCardsFilter })),
       toggleSortByDueDate: () => set((s) => ({ sortByDueDate: !s.sortByDueDate })),
+      setSearchQuery: (searchQuery) => set({ searchQuery }),
+      clearAllFilters: () =>
+        set({ activeLabelFilter: null, myCardsFilter: false, searchQuery: '' }),
 
       // Cards — supports functional updaters for DnD handlers
       setCards: (updaterOrCards) =>
@@ -231,6 +235,7 @@ export const useBoardStore = create(
           activeLabelFilter: null,
           myCardsFilter: false,
           sortByDueDate: false,
+          searchQuery: '',
         }),
     }),
     { name: 'BoardStore', enabled: import.meta.env.DEV }

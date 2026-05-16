@@ -203,3 +203,6 @@
   padding: 0 3px;
   font-size: 0.68rem;
 }
+
+/* Busca global — dimming */
+.card-dimmed { opacity: 0.25; pointer-events: none; }

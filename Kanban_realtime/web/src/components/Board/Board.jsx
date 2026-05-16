@@ -10,7 +10,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X, ArrowUpDown, User } from 'lucide-react';
+import { X, ArrowUpDown, User, Search } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
@@ -56,16 +56,38 @@ export default function Board({ socket, boardId, user }) {
     clearActiveLabelFilter,
     toggleMyCardsFilter,
     toggleSortByDueDate,
+    searchQuery,
+    setSearchQuery,
+    clearAllFilters,
   } = useBoardStore();
 
   const offlineQueueRef = useRef([]);
   const lastEmitTime = useRef(0);
+  const searchInputRef = useRef(null);
   const THROTTLE_MS = 50;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // ── Atalho Ctrl+F para focar a busca ──────────────────────────────────────
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      }
+      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
+        searchInputRef.current?.blur();
+        if (searchQuery) setSearchQuery('');
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handlers de label/duedate/assignee para Card ───────────────────────────
 
@@ -275,6 +297,9 @@ export default function Board({ socket, boardId, user }) {
 
   const filterAndSortCards = (colCards) => {
     let result = colCards;
+    if (activeLabelFilter) {
+      result = result.filter((c) => c.labels?.some((l) => l.id === activeLabelFilter));
+    }
     if (myCardsFilter && user?.id) {
       result = result.filter((c) => c.assignees?.some((a) => a.id === user.id));
     }
@@ -289,20 +314,45 @@ export default function Board({ socket, boardId, user }) {
     return result;
   };
 
+  const hasActiveFilters = !!(activeLabelFilter || myCardsFilter || searchQuery.trim());
+
   if (!boardSynced) {
     return <SkeletonBoard />;
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      {/* ── Barra de Filtro por Label + Ordenação ───────────────────────── */}
+      {/* ── Barra de Busca + Filtros ─────────────────────────────────────── */}
       <div
         className="label-filter-bar"
         onPointerDown={(e) => e.stopPropagation()}
       >
+        {/* Campo de busca global */}
+        <div className="board-search-wrapper">
+          <Search size={13} className="board-search-icon" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="board-search-input"
+            placeholder="Buscar cartões... (Ctrl+F)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="board-search-clear"
+              onClick={() => setSearchQuery('')}
+              title="Limpar busca"
+            >
+              <X size={10} />
+            </button>
+          )}
+        </div>
+
         {boardLabels.length > 0 && (
           <>
-            <span className="label-filter-title">Filtrar:</span>
+            <span className="label-filter-sep" />
+            <span className="label-filter-title">Labels:</span>
             {boardLabels.map((label) => (
               <button
                 key={label.id}
@@ -318,17 +368,9 @@ export default function Board({ socket, boardId, user }) {
                 {label.name}
               </button>
             ))}
-            {activeLabelFilter && (
-              <button
-                className="label-filter-clear"
-                onClick={clearActiveLabelFilter}
-                title="Limpar filtro"
-              >
-                <X size={12} /> Limpar
-              </button>
-            )}
           </>
         )}
+
         <button
           className={`label-filter-chip ${myCardsFilter ? 'active' : ''}`}
           style={{ '--chip-color': '#0ea5e9', borderColor: myCardsFilter ? '#0ea5e9' : 'transparent', marginLeft: 'auto' }}
@@ -347,6 +389,16 @@ export default function Board({ socket, boardId, user }) {
           <ArrowUpDown size={11} />
           Prazo
         </button>
+
+        {hasActiveFilters && (
+          <button
+            className="label-filter-clear"
+            onClick={clearAllFilters}
+            title="Limpar todos os filtros"
+          >
+            <X size={12} /> Limpar tudo
+          </button>
+        )}
       </div>
 
       {/* ── Colunas + DnD ────────────────────────────────────────────────── */}
@@ -373,7 +425,7 @@ export default function Board({ socket, boardId, user }) {
                 boardId={boardId}
                 boardLabels={boardLabels}
                 boardMembers={boardMembers}
-                activeLabelFilter={activeLabelFilter}
+                searchQuery={searchQuery}
                 pendingCardIds={pendingCardIds}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
