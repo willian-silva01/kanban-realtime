@@ -1,0 +1,129 @@
+.md-editor {
+  margin-top: 8px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1e293b;
+}
+
+.md-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: #0f172a;
+  border-bottom: 1px solid #334155;
+}
+
+.md-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.md-tab:hover { background: #1e293b; color: #e2e8f0; }
+.md-tab.active { background: #334155; color: #f1f5f9; }
+
+.md-saving {
+  margin-left: auto;
+  font-size: 10px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.md-saved {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  font-size: 10px;
+  color: #4ade80;
+}
+
+.md-editor-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 10px;
+  min-height: 120px;
+}
+
+.md-editor-preview {
+  padding: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #e2e8f0;
+  min-height: 80px;
+  word-break: break-word;
+}
+
+/* Markdown rendered styles */
+.md-editor-preview h1,
+.md-editor-preview h2,
+.md-editor-preview h3 {
+  color: #f1f5f9;
+  margin: 6px 0 4px;
+  font-size: 13px;
+}
+
+.md-editor-preview p { margin: 4px 0; }
+
+.md-editor-preview ul,
+.md-editor-preview ol {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.md-editor-preview li { margin: 2px 0; }
+
+.md-editor-preview code {
+  background: #0f172a;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #7dd3fc;
+}
+
+.md-editor-preview pre {
+  background: #0f172a;
+  border-radius: 4px;
+  padding: 8px;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+
+.md-editor-preview pre code {
+  background: none;
+  padding: 0;
+}
+
+.md-editor-preview a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.md-editor-preview strong { color: #f1f5f9; }
+.md-editor-preview em { color: #cbd5e1; }
+
+.md-editor-preview blockquote {
+  border-left: 3px solid #475569;
+  margin: 4px 0;
+  padding: 2px 8px;
+  color: #94a3b8;
+}

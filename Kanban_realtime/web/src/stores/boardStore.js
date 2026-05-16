@@ -81,6 +81,11 @@ export const useBoardStore = create(
           cards: s.cards.map((c) => (c.id === cardId ? { ...c, dueDate } : c)),
         })),
 
+      updateCardDescription: (cardId, description) =>
+        set((s) => ({
+          cards: s.cards.map((c) => (c.id === cardId ? { ...c, description } : c)),
+        })),
+
       addAssigneeToCard: (cardId, assignee) =>
         set((s) => ({
           cards: s.cards.map((c) => {

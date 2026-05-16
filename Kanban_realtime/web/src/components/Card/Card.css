@@ -163,3 +163,24 @@
 .card-pending-icon {
   animation: spin 1s linear infinite;
 }
+
+/* ── Markdown description preview on card ───────────────────────────────── */
+.card-desc--md {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-top: 4px;
+  max-height: 3.6em;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.card-desc--md p { margin: 0; }
+.card-desc--md ul,
+.card-desc--md ol { margin: 0; padding-left: 14px; }
+.card-desc--md code {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 2px;
+  padding: 0 3px;
+  font-size: 0.68rem;
+}

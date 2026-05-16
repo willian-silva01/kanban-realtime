@@ -41,6 +41,7 @@ export default function Board({ socket, boardId, user }) {
     updateCardDueDate,
     addAssigneeToCard,
     removeAssigneeFromCard,
+    updateCardDescription,
     addBoardLabel,
     updateBoardLabel,
     deleteBoardLabel,
@@ -75,6 +76,10 @@ export default function Board({ socket, boardId, user }) {
     else removeAssigneeFromCard(cardId, payload);
   };
 
+  const handleDescriptionChange = (cardId, description) => {
+    updateCardDescription(cardId, description);
+  };
+
   const handleBoardLabelChange = (type, payload) => {
     if (type === 'create') addBoardLabel(payload);
     else if (type === 'update') updateBoardLabel(payload);
@@ -103,6 +108,8 @@ export default function Board({ socket, boardId, user }) {
     const onAssigneeAdded = ({ cardId, assignee }) => addAssigneeToCard(cardId, assignee);
     const onAssigneeRemoved = ({ cardId, userId: removedUserId }) =>
       removeAssigneeFromCard(cardId, removedUserId);
+    const onDescriptionUpdated = ({ cardId, description }) =>
+      updateCardDescription(cardId, description);
 
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
@@ -114,6 +121,7 @@ export default function Board({ socket, boardId, user }) {
     socket.on('card:duedate:updated', onCardDueDateUpdated);
     socket.on('card:assignee:added', onAssigneeAdded);
     socket.on('card:assignee:removed', onAssigneeRemoved);
+    socket.on('card:description:updated', onDescriptionUpdated);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -126,6 +134,7 @@ export default function Board({ socket, boardId, user }) {
       socket.off('card:duedate:updated', onCardDueDateUpdated);
       socket.off('card:assignee:added', onAssigneeAdded);
       socket.off('card:assignee:removed', onAssigneeRemoved);
+      socket.off('card:description:updated', onDescriptionUpdated);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -323,6 +332,7 @@ export default function Board({ socket, boardId, user }) {
                 onBoardLabelChange={handleBoardLabelChange}
                 onDueDateChange={handleDueDateChange}
                 onAssigneeChange={handleAssigneeChange}
+                onDescriptionChange={handleDescriptionChange}
               />
             ))}
           </SortableContext>

@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users, RefreshCw } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw, FileText } from 'lucide-react';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
 import LabelPicker from '../LabelPicker/LabelPicker';
 import AssigneePicker from '../AssigneePicker/AssigneePicker';
+import MarkdownEditor from '../MarkdownEditor/MarkdownEditor';
 import api from '../../services/api';
 import './Card.css';
 import '../AssigneePicker/AssigneePicker.css';
+
+marked.use({ breaks: true, gfm: true });
 
 function getDueDateStatus(dueDate) {
   if (!dueDate) return null;
@@ -53,12 +58,15 @@ export default function Card({
   onBoardLabelChange,
   onDueDateChange,
   onAssigneeChange,
+  onDescriptionChange,
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [assigneePickerOpen, setAssigneePickerOpen] = useState(false);
   const [dueDatePickerOpen, setDueDatePickerOpen] = useState(false);
+  const [descEditorOpen, setDescEditorOpen] = useState(false);
   const [dueDateInput, setDueDateInput] = useState('');
   const [savingDueDate, setSavingDueDate] = useState(false);
+  const [savingDescription, setSavingDescription] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -109,6 +117,28 @@ export default function Card({
     }
   };
 
+  const handleDescriptionSave = async (description) => {
+    setSavingDescription(true);
+    try {
+      await api.put(`/cards/${card.id}`, { description });
+      onDescriptionChange?.(card.id, description);
+      socket?.emit('card:description:updated', { boardId, cardId: card.id, description });
+    } catch (err) {
+      console.error('Erro ao salvar descrição', err);
+    } finally {
+      setSavingDescription(false);
+    }
+  };
+
+  const toggleDescEditor = (e) => {
+    e.stopPropagation();
+    setDescEditorOpen((v) => !v);
+    if (!descEditorOpen) {
+      setPickerOpen(false);
+      setAssigneePickerOpen(false);
+    }
+  };
+
   return (
     <div ref={setNodeRef} style={style} className={classNames} {...attributes} {...listeners}>
       {isPending && (
@@ -133,7 +163,14 @@ export default function Card({
       )}
 
       <div className="card-title">{card.title}</div>
-      {card.description && <div className="card-desc">{card.description}</div>}
+      {card.description && !descEditorOpen && (
+        <div
+          className="card-desc card-desc--md"
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(marked.parse(card.description)),
+          }}
+        />
+      )}
 
       {/* Due date badge */}
       {card.dueDate && (
@@ -188,6 +225,13 @@ export default function Card({
             title="Definir prazo"
           >
             <Calendar size={12} />
+          </button>
+          <button
+            className={`card-label-btn ${descEditorOpen ? 'active' : ''}`}
+            onClick={toggleDescEditor}
+            title="Editar descrição"
+          >
+            <FileText size={12} />
           </button>
         </div>
       )}
@@ -261,6 +305,15 @@ export default function Card({
             )}
           </div>
         </div>
+      )}
+
+      {/* Inline markdown description editor */}
+      {descEditorOpen && !isOverlay && (
+        <MarkdownEditor
+          initialValue={card.description ?? ''}
+          onSave={handleDescriptionSave}
+          saving={savingDescription}
+        />
       )}
 
       <CommentsPanel cardId={card.id} socket={socket} />
