@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw } from 'lucide-react';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
 import LabelPicker from '../LabelPicker/LabelPicker';
 import AssigneePicker from '../AssigneePicker/AssigneePicker';
@@ -44,6 +44,7 @@ function getInitials(name) {
 export default function Card({
   card,
   isOverlay,
+  isPending = false,
   socket,
   boardId,
   boardLabels = [],
@@ -110,6 +111,11 @@ export default function Card({
 
   return (
     <div ref={setNodeRef} style={style} className={classNames} {...attributes} {...listeners}>
+      {isPending && (
+        <div className="card-pending-badge" title="Aguardando sincronização...">
+          <RefreshCw size={10} className="card-pending-icon" />
+        </div>
+      )}
       {/* Label chips */}
       {cardLabels.length > 0 && (
         <div className="card-labels" onPointerDown={(e) => e.stopPropagation()}>

@@ -148,3 +148,18 @@
   color: #A881FC;
   border-color: rgba(106, 56, 227, 0.4);
 }
+
+/* ── Pending sync badge ─────────────────────────────────────────────────── */
+.card-pending-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #F59E0B;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.card-pending-icon {
+  animation: spin 1s linear infinite;
+}

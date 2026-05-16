@@ -15,6 +15,7 @@ import { X, ArrowUpDown, User } from 'lucide-react';
 import Column from '../Column/Column';
 import Card from '../Card/Card';
 import CursorsLayer from './CursorsLayer';
+import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
 import './Board.css';
 
 export default function Board({ socket, boardId, user }) {
@@ -26,6 +27,8 @@ export default function Board({ socket, boardId, user }) {
   const [activeLabelFilter, setActiveLabelFilter] = useState(null);
   const [myCardsFilter, setMyCardsFilter] = useState(false);
   const [sortByDueDate, setSortByDueDate] = useState(false);
+  const [boardSynced, setBoardSynced] = useState(false);
+  const [pendingCardIds, setPendingCardIds] = useState(new Set());
 
   const offlineQueueRef = useRef([]);
   const lastEmitTime = useRef(0);
@@ -96,8 +99,10 @@ export default function Board({ socket, boardId, user }) {
       setCards(syncedCards);
       setBoardLabels(syncedLabels ?? []);
       setBoardMembers(syncedMembers ?? []);
+      setBoardSynced(true);
       const queue = offlineQueueRef.current.splice(0);
       queue.forEach(({ event, payload }) => socket.emit(event, payload));
+      setPendingCardIds(new Set());
     };
 
     const onCardMove = (payload) => {
@@ -280,6 +285,7 @@ export default function Board({ socket, boardId, user }) {
         socket.emit('card:move', payload);
       } else {
         offlineQueueRef.current.push({ event: 'card:move', payload });
+        setPendingCardIds((prev) => new Set([...prev, activeId]));
       }
     }
   };
@@ -299,6 +305,10 @@ export default function Board({ socket, boardId, user }) {
     }
     return result;
   };
+
+  if (!boardSynced) {
+    return <SkeletonBoard />;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
@@ -383,6 +393,7 @@ export default function Board({ socket, boardId, user }) {
                 boardLabels={boardLabels}
                 boardMembers={boardMembers}
                 activeLabelFilter={activeLabelFilter}
+                pendingCardIds={pendingCardIds}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
                 onDueDateChange={handleDueDateChange}

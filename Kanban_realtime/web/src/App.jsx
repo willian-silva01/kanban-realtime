@@ -17,6 +17,7 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import Board from './components/Board/Board';
 import ActivityPanel from './components/ActivityPanel/ActivityPanel';
 import NotificationBell from './components/NotificationBell/NotificationBell';
+import ConnectionStatus from './components/ConnectionStatus/ConnectionStatus';
 
 import { useAuth } from './contexts/AuthContext';
 import './index.css';
@@ -29,19 +30,17 @@ const BOARD_ID = 'board-demo';
 function BoardPage() {
   const { socket, user, isConnected, isReconnecting, logout } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [boardError, setBoardError] = useState(null);
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
   useEffect(() => {
     if (!socket) return;
 
     const joinBoard = () => {
-      // CORRIGIDO (BUG-05): passa callback para detectar falha ao entrar na room.
-      // Sem callback, uma falha de _checkAccess no servidor era silenciosa:
-      // o socket nunca entrava na room e nenhum broadcast chegava.
+      setBoardError(null);
       socket.emit('board:join', { boardId: BOARD_ID }, (response) => {
         if (response && !response.success) {
-          console.error('[BoardPage] Falha ao entrar no board:', response.message);
-          // TODO: exibir erro para o usuário (toast, redirect, etc)
+          setBoardError(response.message || 'Não foi possível entrar no board.');
         }
       });
 
@@ -113,16 +112,7 @@ function BoardPage() {
           )}
 
           {/* Indicador de Conexão */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <div style={{
-              width: 8, height: 8, borderRadius: '50%',
-              backgroundColor: isConnected ? '#10B981' : isReconnecting ? '#F59E0B' : '#EF4444',
-              boxShadow: isConnected ? '0 0 6px #10B981' : isReconnecting ? '0 0 6px #F59E0B' : 'none',
-              transition: 'all 0.3s',
-              animation: isReconnecting ? 'pulse 1.2s ease-in-out infinite' : 'none',
-            }} />
-            {isConnected ? 'Sincronizado' : isReconnecting ? 'Reconectando...' : 'Offline'}
-          </div>
+          <ConnectionStatus isConnected={isConnected} isReconnecting={isReconnecting} />
 
           {/* Sino de Notificações */}
           <NotificationBell socket={socket} />
@@ -174,7 +164,37 @@ function BoardPage() {
       <ActivityPanel socket={socket} boardId={BOARD_ID} />
 
       {/* ─── Board Principal ─────────────────────────────────── */}
-      <Board socket={socket} boardId={BOARD_ID} user={user} />
+      {boardError ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          flex: 1, gap: '12px',
+        }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: 0 }}>
+            {boardError}
+          </p>
+          <button
+            onClick={() => socket?.connected && socket.emit('board:join', { boardId: BOARD_ID }, (res) => {
+              if (res?.success) setBoardError(null);
+              else setBoardError(res?.message || 'Erro ao tentar novamente.');
+            })}
+            style={{
+              background: 'rgba(106, 56, 227, 0.15)',
+              border: '1px solid rgba(106, 56, 227, 0.35)',
+              color: '#A881FC',
+              borderRadius: '8px',
+              padding: '8px 20px',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : (
+        <Board socket={socket} boardId={BOARD_ID} user={user} />
+      )}
     </div>
   );
 }

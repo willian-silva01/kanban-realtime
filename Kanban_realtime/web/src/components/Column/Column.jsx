@@ -13,6 +13,7 @@ export default function Column({
   boardLabels,
   boardMembers,
   activeLabelFilter,
+  pendingCardIds,
   onCardLabelChange,
   onBoardLabelChange,
   onDueDateChange,
@@ -49,6 +50,7 @@ export default function Column({
               boardId={boardId}
               boardLabels={boardLabels}
               boardMembers={boardMembers}
+              isPending={pendingCardIds?.has(card.id) ?? false}
               onCardLabelChange={onCardLabelChange}
               onBoardLabelChange={onBoardLabelChange}
               onDueDateChange={onDueDateChange}
