@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import Board from '../../components/Board/Board';
+import { useBoardStore } from '../../stores/boardStore';
 
 vi.mock('@dnd-kit/core', () => ({
   DndContext: ({ children }) => <div data-testid="dnd-context">{children}</div>,
@@ -53,11 +54,16 @@ function makeSocket(handlers = {}) {
 
 const USER = { id: 'user-1', name: 'User Test' };
 
+beforeEach(() => {
+  useBoardStore.getState().reset();
+});
+
 describe('Board', () => {
-  it('renderiza sem colunas quando não há dados', () => {
+  it('exibe skeleton antes de receber board:sync', () => {
     const socket = makeSocket();
     render(<Board socket={socket} boardId="board-1" user={USER} />);
-    expect(screen.getByTestId('dnd-context')).toBeInTheDocument();
+    // boardSynced começa false — mostra skeleton, não o dnd-context
+    expect(screen.queryByTestId('dnd-context')).not.toBeInTheDocument();
   });
 
   it('registra handlers de socket ao montar', () => {
@@ -92,7 +98,7 @@ describe('Board', () => {
 
   it('não registra handlers quando socket é nulo', () => {
     render(<Board socket={null} boardId="board-1" user={USER} />);
-    // Sem socket — não deve lançar erro
-    expect(screen.getByTestId('dnd-context')).toBeInTheDocument();
+    // Sem socket — apenas exibe skeleton sem lançar erro
+    expect(screen.queryByTestId('dnd-context')).not.toBeInTheDocument();
   });
 });

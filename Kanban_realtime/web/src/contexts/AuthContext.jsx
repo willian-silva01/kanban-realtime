@@ -1,59 +1,41 @@
 /**
- * AuthContext — Contexto Global de Autenticação
- * Responsável por: armazenar usuário, token em memória, gerenciar socket,
- * expor login/logout e proteger rotas de forma centralizada.
+ * AuthContext — Provider de inicialização de autenticação
+ *
+ * Responsabilidade após migração para Zustand:
+ *   - Restaurar sessão via refresh token (efeito de montagem)
+ *   - Conectar/desconectar socket conforme token muda
+ *   - Expor login/logout/register via contexto (dependem de useNavigate)
+ *
+ * Estado reativo (user, token, socket, isConnected, etc.) vive nos stores:
+ *   authStore    → user, token, authLoading
+ *   presenceStore → socket, isConnected, isReconnecting
  */
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import api, { setAccessToken } from '../services/api';
+import { useAuthStore } from '../stores/authStore';
+import { usePresenceStore } from '../stores/presenceStore';
 
-// ─── Constantes ───────────────────────────────────────────────────────────────
 const USER_KEY = '@Kanban:user';
 const SOCKET_URL = 'http://localhost:3000';
 
-// ─── Criação do Contexto ──────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
-  // ─── Estado ───────────────────────────────────────────────────────────────
-  const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem(USER_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  });
+  const { setUser, setToken, setAuthLoading } = useAuthStore();
+  const { setSocket, setIsConnected, setIsReconnecting } = usePresenceStore();
 
-  // Access token em memória — não persiste no localStorage
-  const [token, setToken] = useState(null);
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false);
-  // true durante login/register e na restauração inicial de sessão
-  const [authLoading, setAuthLoading] = useState(true);
+  const token = useAuthStore((s) => s.token);
+  const user = useAuthStore((s) => s.user);
 
   const socketRef = useRef(null);
   const logoutRef = useRef(null);
 
-  const isAuthenticated = Boolean(token && user);
-
   // ─── Restaurar sessão via refresh token (cookie httpOnly) ─────────────────
-  // Executado uma única vez na montagem. Se houver dados de usuário em
-  // localStorage, tenta renovar o access token usando o cookie de refresh.
   useEffect(() => {
     const restoreSession = async () => {
       const storedUser = localStorage.getItem(USER_KEY);
@@ -69,7 +51,6 @@ export function AuthProvider({ children }) {
         setUser(userData);
         localStorage.setItem(USER_KEY, JSON.stringify(userData));
       } catch {
-        // Refresh token expirado ou inválido — limpa dados obsoletos
         localStorage.removeItem(USER_KEY);
         setUser(null);
       } finally {
@@ -109,13 +90,8 @@ export function AuthProvider({ children }) {
       }
     });
 
-    newSocket.on('reconnect_attempt', () => {
-      setIsReconnecting(true);
-    });
-
-    newSocket.on('reconnect_failed', () => {
-      setIsReconnecting(false);
-    });
+    newSocket.on('reconnect_attempt', () => setIsReconnecting(true));
+    newSocket.on('reconnect_failed', () => setIsReconnecting(false));
 
     newSocket.on('connect_error', (err) => {
       setIsConnected(false);
@@ -178,7 +154,7 @@ export function AuthProvider({ children }) {
     } finally {
       setAuthLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, setAuthLoading, setToken, setUser]);
 
   // ─── Registro ─────────────────────────────────────────────────────────────
   const register = useCallback(async ({ name, email, password }) => {
@@ -206,14 +182,14 @@ export function AuthProvider({ children }) {
     } finally {
       setAuthLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, setAuthLoading, setToken, setUser]);
 
   // ─── Logout ───────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
-      await api.post('/auth/logout'); // limpa o cookie httpOnly no servidor
+      await api.post('/auth/logout');
     } catch {
-      // ignora falha de rede — o estado local é limpo de qualquer forma
+      // ignora falha de rede — estado local é limpo de qualquer forma
     }
 
     setAccessToken(null);
@@ -230,33 +206,18 @@ export function AuthProvider({ children }) {
     setIsConnected(false);
 
     navigate('/login');
-  }, [navigate]);
+  }, [navigate, setToken, setUser, setSocket, setIsConnected]);
 
   useEffect(() => { logoutRef.current = logout; }, [logout]);
 
-  // Ouve evento disparado pelo interceptor Axios quando o refresh falha
   useEffect(() => {
     const handleForcedLogout = () => logout();
     window.addEventListener('auth:logout', handleForcedLogout);
     return () => window.removeEventListener('auth:logout', handleForcedLogout);
   }, [logout]);
 
-  // ─── Valor do contexto ────────────────────────────────────────────────────
-  const contextValue = useMemo(
-    () => ({
-      user,
-      token,
-      socket,
-      isAuthenticated,
-      isConnected,
-      isReconnecting,
-      authLoading,
-      login,
-      logout,
-      register,
-    }),
-    [user, token, socket, isAuthenticated, isConnected, isReconnecting, authLoading, login, logout, register]
-  );
+  // Contexto expõe apenas as ações dependentes de navegação
+  const contextValue = useMemo(() => ({ login, logout, register }), [login, logout, register]);
 
   return (
     <AuthContext.Provider value={contextValue}>
@@ -265,13 +226,33 @@ export function AuthProvider({ children }) {
   );
 }
 
-// ─── Hook de consumo ──────────────────────────────────────────────────────────
+// ─── Hook de consumo — lê dos stores Zustand + ações do contexto ─────────────
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) {
     throw new Error('useAuth deve ser usado dentro de <AuthProvider>');
   }
-  return ctx;
+
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.token);
+  const authLoading = useAuthStore((s) => s.authLoading);
+  const socket = usePresenceStore((s) => s.socket);
+  const isConnected = usePresenceStore((s) => s.isConnected);
+  const isReconnecting = usePresenceStore((s) => s.isReconnecting);
+  const isAuthenticated = Boolean(token && user);
+
+  return {
+    user,
+    token,
+    socket,
+    isAuthenticated,
+    isConnected,
+    isReconnecting,
+    authLoading,
+    login: ctx.login,
+    logout: ctx.logout,
+    register: ctx.register,
+  };
 }
 
 export default AuthContext;

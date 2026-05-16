@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
+import { usePresenceStore } from '../../stores/presenceStore';
 
 // Mock do socket.io-client
 vi.mock('socket.io-client', () => ({
@@ -47,6 +49,8 @@ function renderWithAuth(ui) {
 beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
+  useAuthStore.getState().reset();
+  usePresenceStore.getState().reset();
   // Por padrão, /auth/refresh falha (sem sessão ativa)
   api.post.mockRejectedValue({ response: { status: 401 } });
 });

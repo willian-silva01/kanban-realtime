@@ -2,24 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotificationStore } from '../../stores/notificationStore';
 import './NotificationBell.css';
 
-// CORRIGIDO:
-// - Remove prop `token` (era recebida mas não usada consistentemente)
-// - Remove guard manual `localStorage.getItem(...)` — o interceptor do api.js garante o header
-// - Usa `isAuthenticated` do AuthContext como guard correto
-// - O componente só monta dentro do PrivateRoute (já protegido), mas o guard
-//   adicional com isAuthenticated previne edge cases de timing após logout
 export default function NotificationBell({ socket }) {
   const { isAuthenticated } = useAuth();
-  const [notifications, setNotifications] = useState([]);
+  const { notifications, setNotifications, addNotification, markAsRead } = useNotificationStore();
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // ─── 1. Carregar via REST ao montar ────────────────────────────────────────
   useEffect(() => {
-    // Guard: só chama a API se o usuário estiver autenticado
     if (!isAuthenticated) return;
 
     api
@@ -31,24 +25,19 @@ export default function NotificationBell({ socket }) {
         }
       })
       .catch((err) => {
-        // 401 já é tratado pelo interceptor global — apenas silencia outros erros
         if (err.response?.status !== 401) {
           console.error('[NotificationBell] Erro ao carregar notificações:', err.message);
         }
       });
-  }, [isAuthenticated]); // re-executa se o estado de auth mudar (ex: login após mount)
+  }, [isAuthenticated, setNotifications]);
 
   // ─── 2. Ouvir notificações em tempo real via WebSocket ────────────────────
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewNotif = (notif) => {
-      setNotifications((prev) => [notif, ...prev]);
-    };
-
-    socket.on('notification:new', handleNewNotif);
-    return () => socket.off('notification:new', handleNewNotif);
-  }, [socket]);
+    socket.on('notification:new', addNotification);
+    return () => socket.off('notification:new', addNotification);
+  }, [socket, addNotification]);
 
   // Fechar dropdown se clicar fora
   useEffect(() => {
@@ -61,21 +50,6 @@ export default function NotificationBell({ socket }) {
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [isOpen]);
-
-  // ─── 3. Marcar como lido ─────────────────────────────────────────────────
-  const markAsRead = async (id) => {
-    // Atualização otimista
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    try {
-      await api.patch(`/notifications/${id}/read`);
-    } catch (err) {
-      // Reverter se a API falhar
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
-      if (err.response?.status !== 401) {
-        console.error('[NotificationBell] Erro ao marcar notificação:', err.message);
-      }
-    }
-  };
 
   return (
     <div style={{ position: 'relative' }} data-notification-bell>

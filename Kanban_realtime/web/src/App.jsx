@@ -8,7 +8,7 @@
  *   /board        → board principal (PROTEGIDO — requer JWT)
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -20,6 +20,9 @@ import NotificationBell from './components/NotificationBell/NotificationBell';
 import ConnectionStatus from './components/ConnectionStatus/ConnectionStatus';
 
 import { useAuth } from './contexts/AuthContext';
+import { useAuthStore } from './stores/authStore';
+import { usePresenceStore } from './stores/presenceStore';
+import { useBoardStore } from './stores/boardStore';
 import './index.css';
 
 // ─── Constante do Board ──────────────────────────────────────────────────────
@@ -28,9 +31,15 @@ const BOARD_ID = 'board-demo';
 
 // ─── Tela de Board (área protegida) ─────────────────────────────────────────
 function BoardPage() {
-  const { socket, user, isConnected, isReconnecting, logout } = useAuth();
-  const [onlineUsers, setOnlineUsers] = useState([]);
-  const [boardError, setBoardError] = useState(null);
+  const { logout } = useAuth();
+  const socket = usePresenceStore((s) => s.socket);
+  const isConnected = usePresenceStore((s) => s.isConnected);
+  const isReconnecting = usePresenceStore((s) => s.isReconnecting);
+  const onlineUsers = usePresenceStore((s) => s.onlineUsers);
+  const setOnlineUsers = usePresenceStore((s) => s.setOnlineUsers);
+  const user = useAuthStore((s) => s.user);
+  const boardError = useBoardStore((s) => s.boardError);
+  const setBoardError = useBoardStore((s) => s.setBoardError);
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
   useEffect(() => {
@@ -47,10 +56,8 @@ function BoardPage() {
       socket.emit('presence:join', { boardId: BOARD_ID, name: user?.name || 'Anônimo' });
     };
 
-    // Handler nomeado para poder remover corretamente no cleanup
     const onPresenceUpdate = (users) => setOnlineUsers(users);
 
-    // Caso o socket já esteja conectado quando o effect rodar (ex: reconexão rápida)
     if (socket.connected) {
       joinBoard();
     }
@@ -59,17 +66,14 @@ function BoardPage() {
     socket.on('presence:update', onPresenceUpdate);
 
     return () => {
-      // CORRIGIDO (BUG-03/04): passa referência nomeada para socket.off()
       socket.off('connect', joinBoard);
       socket.off('presence:update', onPresenceUpdate);
 
-      // presence:leave é emitido se o socket ainda estiver ativo.
-      // O board.handler.js também limpa via 'disconnect' event usando socket.currentBoardId.
       if (socket.connected) {
         socket.emit('presence:leave', { boardId: BOARD_ID });
       }
     };
-  }, [socket, user]);
+  }, [socket, user, setBoardError, setOnlineUsers]);
 
   return (
     <div className="app-container">
