@@ -5,13 +5,14 @@ const logger = require('./utils/logger');
 const app = require('./app');
 
 const server = http.createServer(app);
-initSocket(server);
 
-server.listen(env.PORT, () => {
-  logger.info(`🚀 Servidor Kanban Realtime rodando na porta ${env.PORT}`);
-  logger.info(`📍 Ambiente: ${env.NODE_ENV}`);
-  logger.info(`🔗 URL: http://localhost:${env.PORT}`);
-  logger.info(`❤️  Health: http://localhost:${env.PORT}/api/health`);
+initSocket(server).then(() => {
+  server.listen(env.PORT, () => {
+    logger.info(`🚀 Servidor Kanban Realtime rodando na porta ${env.PORT}`);
+    logger.info(`📍 Ambiente: ${env.NODE_ENV}`);
+    logger.info(`🔗 URL: http://localhost:${env.PORT}`);
+    logger.info(`❤️  Health: http://localhost:${env.PORT}/api/health`);
+  });
 });
 
 // ─── Job: notificações de prazo 24h antes ────────────────────────────────────
@@ -29,7 +30,6 @@ async function checkDueDateNotifications() {
     for (const card of cards) {
       const boardId = card.column.boardId;
 
-      // Evita duplicar notificação enviada nas últimas 25h
       const existing = await prisma.notification.findFirst({
         where: {
           type: 'DUE_DATE_REMINDER',

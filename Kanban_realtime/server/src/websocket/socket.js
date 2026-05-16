@@ -8,7 +8,7 @@ const env = require('../config/env');
 
 let io;
 
-function initSocket(httpServer) {
+async function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
       // TODO: restringir para domínios específicos em produção
@@ -22,13 +22,21 @@ function initSocket(httpServer) {
     },
   });
 
-  // Redis Adapter — habilita pub/sub entre múltiplas instâncias do servidor.
-  // pubClient envia mensagens; subClient recebe. Dois clientes distintos são
-  // obrigatórios porque o Redis bloqueia um client em modo SUBSCRIBE.
-  const pubClient = new Redis(env.REDIS_URL);
-  const subClient = pubClient.duplicate();
-  io.adapter(createAdapter(pubClient, subClient));
-  logger.info('[Socket] Redis Adapter configurado');
+  // Redis Adapter — habilita pub/sub entre múltiplas instâncias.
+  // Em dev sem Redis disponível, cai silenciosamente no adapter in-process.
+  try {
+    const pubClient = new Redis(env.REDIS_URL, { lazyConnect: true, enableOfflineQueue: false, maxRetriesPerRequest: 1 });
+    const subClient = pubClient.duplicate();
+
+    pubClient.on('error', () => {});
+    subClient.on('error', () => {});
+
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+    logger.info('[Socket] Redis Adapter configurado');
+  } catch {
+    logger.warn('[Socket] Redis indisponível — usando adapter in-process (single node)');
+  }
 
   // Middleware de autenticação JWT — valida token no handshake
   io.use(authSocketMiddleware);
