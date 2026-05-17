@@ -11,17 +11,19 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X, ArrowUpDown, User, Search } from 'lucide-react';
+import { X, ArrowUpDown, User, Search, Download, FileText, FileSpreadsheet } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
 import CursorsLayer from './CursorsLayer';
 import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
 import { useBoardStore } from '../../stores/boardStore';
+import { exportToCSV, exportToPDF } from '../../utils/exportBoard';
 import './Board.css';
 
 export default function Board({ socket, boardId, user }) {
   const {
+    boardName,
     columns,
     cards,
     boardLabels,
@@ -68,6 +70,8 @@ export default function Board({ socket, boardId, user }) {
   const THROTTLE_MS = 50;
 
   const [activeColIndex, setActiveColIndex] = useState(0);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -111,6 +115,29 @@ export default function Board({ socket, boardId, user }) {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Fechar menu de export ao clicar fora ─────────────────────────────────
+
+  useEffect(() => {
+    if (!showExportMenu) return;
+    const handler = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showExportMenu]);
+
+  const handleExportCSV = () => {
+    setShowExportMenu(false);
+    exportToCSV(boardName, columns, cards);
+  };
+
+  const handleExportPDF = () => {
+    setShowExportMenu(false);
+    exportToPDF(boardName, columns, cards);
+  };
 
   // ── Handlers de label/duedate/assignee para Card ───────────────────────────
 
@@ -422,6 +449,30 @@ export default function Board({ socket, boardId, user }) {
             <X size={12} /> Limpar tudo
           </button>
         )}
+
+        {/* Exportar board */}
+        <div className="board-export-wrapper" ref={exportMenuRef}>
+          <button
+            className="board-export-btn"
+            onClick={() => setShowExportMenu((v) => !v)}
+            title="Exportar board"
+          >
+            <Download size={12} />
+            Exportar
+          </button>
+          {showExportMenu && (
+            <div className="board-export-menu">
+              <button className="board-export-item" onClick={handleExportCSV}>
+                <FileSpreadsheet size={13} />
+                Exportar CSV
+              </button>
+              <button className="board-export-item" onClick={handleExportPDF}>
+                <FileText size={13} />
+                Exportar PDF
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Colunas + DnD ────────────────────────────────────────────────── */}

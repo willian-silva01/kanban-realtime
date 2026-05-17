@@ -146,6 +146,67 @@
 }
 .board-search-clear:hover { background: rgba(255, 255, 255, 0.25); }
 
+/* ── Botão e menu de exportação ─────────────────────────────────────────── */
+.board-export-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.board-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  background: rgba(106, 56, 227, 0.12);
+  border: 1px solid rgba(106, 56, 227, 0.3);
+  color: #a881fc;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.board-export-btn:hover {
+  background: rgba(106, 56, 227, 0.22);
+  border-color: rgba(106, 56, 227, 0.5);
+}
+
+.board-export-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #1e2130;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 4px;
+  z-index: 200;
+  min-width: 150px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.board-export-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: background 0.12s;
+  text-align: left;
+}
+.board-export-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
 /* ── Navegação mobile por colunas ───────────────────────────────────────── */
 .board-col-nav {
   display: none;

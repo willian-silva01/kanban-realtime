@@ -4,6 +4,7 @@ import { devtools } from 'zustand/middleware';
 export const useBoardStore = create(
   devtools(
     (set) => ({
+      boardName: '',
       columns: [],
       cards: [],
       boardLabels: [],
@@ -18,8 +19,9 @@ export const useBoardStore = create(
       searchQuery: '',
 
       // Board sync
-      setBoardSync: ({ columns, cards, boardLabels, boardMembers }) =>
+      setBoardSync: ({ boardName, columns, cards, boardLabels, boardMembers }) =>
         set({
+          boardName: boardName ?? '',
           columns,
           cards,
           boardLabels: boardLabels ?? [],
@@ -224,6 +226,7 @@ export const useBoardStore = create(
 
       reset: () =>
         set({
+          boardName: '',
           columns: [],
           cards: [],
           boardLabels: [],

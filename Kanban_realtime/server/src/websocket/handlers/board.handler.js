@@ -32,7 +32,7 @@ module.exports = (io, socket) => {
       );
       const boardLabels = board.labels ?? [];
       const boardMembers = board.members.map((m) => m.user);
-      socket.emit('board:sync', { columns, cards, boardLabels, boardMembers });
+      socket.emit('board:sync', { boardName: board.name, columns, cards, boardLabels, boardMembers });
 
       if (typeof callback === 'function') callback({ success: true, room });
     } catch (error) {
