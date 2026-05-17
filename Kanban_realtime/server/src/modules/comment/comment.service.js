@@ -5,6 +5,7 @@ const activityService = require('../activity/activity.service');
 const notificationService = require('../notification/notification.service');
 const emailService = require('../email/email.service');
 const { getIo } = require('../../websocket/socket');
+const { groupReactions } = require('./reaction.service');
 
 // Extrai UUIDs de todas as menções @[uuid] no texto
 function parseMentions(content) {
@@ -26,11 +27,15 @@ class CommentService {
     // Valida acesso global ao Board
     await boardService._checkAccess(card.column.boardId, userId);
 
-    return prisma.comment.findMany({
+    const comments = await prisma.comment.findMany({
       where: { cardId },
       orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, name: true } } }
+      include: {
+        user: { select: { id: true, name: true } },
+        reactions: { select: { userId: true, emoji: true } },
+      },
     });
+    return comments.map((c) => ({ ...c, reactions: groupReactions(c.reactions) }));
   }
 
   async create(cardId, userId, content) {

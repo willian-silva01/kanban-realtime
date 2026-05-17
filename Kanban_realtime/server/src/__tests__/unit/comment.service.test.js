@@ -37,7 +37,7 @@ describe('CommentService.list', () => {
   it('deve retornar comentários do card', async () => {
     prisma.card.findUnique.mockResolvedValue(MOCK_CARD);
     boardService._checkAccess.mockResolvedValue({ role: 'admin' });
-    const mockComments = [{ id: 'c-1', content: 'Ótimo!' }];
+    const mockComments = [{ id: 'c-1', content: 'Ótimo!', reactions: [] }];
     prisma.comment.findMany.mockResolvedValue(mockComments);
 
     const result = await commentService.list('card-1', 'user-1');
