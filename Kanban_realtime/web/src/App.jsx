@@ -25,6 +25,8 @@ import { useAuth } from './contexts/AuthContext';
 import { useAuthStore } from './stores/authStore';
 import { usePresenceStore } from './stores/presenceStore';
 import { useBoardStore } from './stores/boardStore';
+import { useThemeStore } from './stores/themeStore';
+import { Sun, Moon } from 'lucide-react';
 import './index.css';
 
 // ─── Tela de Board (área protegida) ─────────────────────────────────────────
@@ -40,6 +42,8 @@ function BoardPage() {
   const boardError = useBoardStore((s) => s.boardError);
   const setBoardError = useBoardStore((s) => s.setBoardError);
   const [showEmailPrefs, setShowEmailPrefs] = useState(false);
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
   useEffect(() => {
@@ -120,6 +124,15 @@ function BoardPage() {
 
           {/* Sino de Notificações */}
           <NotificationBell socket={socket} />
+
+          {/* Toggle de Tema */}
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
 
           {/* Perfil + Logout */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

@@ -1,4 +1,5 @@
 :root {
+  /* ── Base palette ────────────────────────────────────────────────────────── */
   --bg-color: #0f1115;
   --board-bg: #161921;
   --col-bg: rgba(255, 255, 255, 0.04);
@@ -8,8 +9,245 @@
   --brand: #6A38E3;
   --brand-hover: #5427C6;
   --danger: #E3384D;
-  
+
+  /* ── Surface tokens ──────────────────────────────────────────────────────── */
+  --surface-1: #1e2130;
+  --surface-2: #1e293b;
+  --surface-3: #0f172a;
+  --surface-4: #0f1420;
+
+  /* ── Border tokens ───────────────────────────────────────────────────────── */
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-faint: rgba(255, 255, 255, 0.04);
+  --border-medium: rgba(255, 255, 255, 0.05);
+  --border-deep: #2e3347;
+  --border-deeper: #2d2f4a;
+
+  /* ── Layout ──────────────────────────────────────────────────────────────── */
+  --header-bg: rgba(22, 25, 33, 0.6);
+  --body-bg-start: #171822;
+  --body-bg-end: #0d0f14;
+  --filter-bar-bg: rgba(22, 25, 33, 0.5);
+  --col-shadow: rgba(0, 0, 0, 0.4);
+
+  /* ── Inputs ──────────────────────────────────────────────────────────────── */
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-color: #e2e8f0;
+  --input-placeholder: rgba(255, 255, 255, 0.4);
+
+  /* ── Interactive ─────────────────────────────────────────────────────────── */
+  --hover-bg: rgba(255, 255, 255, 0.06);
+  --hover-bg-strong: rgba(255, 255, 255, 0.12);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover-border: rgba(255, 255, 255, 0.18);
+
+  /* ── Scrollbar ───────────────────────────────────────────────────────────── */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  /* ── Shimmer skeleton ────────────────────────────────────────────────────── */
+  --shimmer-from: rgba(255, 255, 255, 0.04);
+  --shimmer-mid: rgba(255, 255, 255, 0.10);
+
+  /* ── Muted text ──────────────────────────────────────────────────────────── */
+  --text-muted: #64748b;
+
+  /* ── Checklist ───────────────────────────────────────────────────────────── */
+  --cl-editor-bg: #1e2130;
+  --cl-editor-border: #2e3347;
+  --cl-title-color: #e2e8f0;
+  --cl-progress-label: #64748b;
+  --cl-progress-bar-bg: #2e3347;
+  --cl-input-bg: #0f1420;
+  --cl-grip-color: #3f4a5e;
+  --cl-item-text: #cbd5e1;
+  --cl-item-done: #475569;
+  --cl-btn-bg: #2e3347;
+  --cl-btn-hover: #3a4157;
+
+  /* ── Markdown editor ─────────────────────────────────────────────────────── */
+  --md-bg: #1e293b;
+  --md-toolbar-bg: #0f172a;
+  --md-border: #334155;
+  --md-tab-hover-bg: #1e293b;
+  --md-tab-active-bg: #334155;
+  --md-tab-active-color: #f1f5f9;
+  --md-text: #e2e8f0;
+  --md-heading: #f1f5f9;
+  --md-code-bg: #0f172a;
+  --md-code-color: #7dd3fc;
+  --md-blockquote-border: #475569;
+  --md-blockquote-color: #94a3b8;
+  --md-em-color: #cbd5e1;
+
+  /* ── Keyboard shortcuts ──────────────────────────────────────────────────── */
+  --shortcuts-modal-bg: #1a1b2e;
+  --shortcuts-border: #2d2f4a;
+  --shortcuts-header-color: #c9d1e0;
+  --shortcuts-close-color: #5a6070;
+  --shortcuts-close-hover-bg: #2d2f4a;
+  --shortcuts-item-hover: #22233a;
+  --shortcuts-kbd-bg: #252640;
+  --shortcuts-kbd-border: #3a3c5c;
+  --shortcuts-kbd-color: #a0aec0;
+  --shortcuts-plus-color: #5a6070;
+  --shortcuts-desc-color: #b8c2d0;
+  --shortcuts-footer-color: #5a6070;
+
+  /* ── Mention / comments ──────────────────────────────────────────────────── */
+  --comments-area-bg: rgba(0, 0, 0, 0.15);
+  --mention-dropdown-bg: #1e1e2e;
+  --mention-dropdown-border: rgba(255, 255, 255, 0.12);
+  --mention-name-color: #e2e8f0;
+  --mention-email-color: rgba(255, 255, 255, 0.4);
+  --reaction-btn-bg: rgba(255, 255, 255, 0.05);
+  --reaction-btn-border: rgba(255, 255, 255, 0.08);
+  --reaction-btn-hover-bg: rgba(255, 255, 255, 0.12);
+  --reaction-btn-hover-border: rgba(255, 255, 255, 0.2);
+
+  /* ── Assignee picker ─────────────────────────────────────────────────────── */
+  --assignee-picker-bg: rgba(15, 15, 30, 0.97);
+  --assignee-name-color: #e2e8f0;
+  --assignee-email-color: #64748b;
+  --assignee-search-placeholder: #475569;
+  --assignee-empty-color: #475569;
+  --avatar-xs-border: rgba(15, 15, 30, 0.8);
+
+  /* ── Email preferences modal ─────────────────────────────────────────────── */
+  --ep-modal-bg: #1A1D2E;
+  --ep-title-color: #E8EAED;
+  --ep-item-label-color: #CBD5E0;
+  --ep-item-desc-color: #4A5568;
+  --ep-item-hover: rgba(255, 255, 255, 0.03);
+  --ep-close-bg: rgba(255, 255, 255, 0.06);
+  --ep-close-hover-bg: rgba(255, 255, 255, 0.12);
+  --ep-toggle-bg: rgba(255, 255, 255, 0.1);
+  --ep-toggle-border: rgba(255, 255, 255, 0.1);
+  --ep-note-border: rgba(255, 255, 255, 0.06);
+  --ep-note-color: #4A5568;
+
+  /* ── Color scheme (for native form controls) ─────────────────────────────── */
+  color-scheme: dark;
+
   --font-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ── Light theme overrides ───────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-color: #f0f2f7;
+  --board-bg: #e4e6ed;
+  --col-bg: #ffffff;
+  --card-bg: #ffffff;
+  --text-primary: #1a1d2e;
+  --text-secondary: #6b7280;
+
+  --surface-1: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #e2e8f0;
+  --surface-4: #f1f5f9;
+
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-faint: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.08);
+  --border-deep: #e2e8f0;
+  --border-deeper: #d1d5db;
+
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --body-bg-start: #f0f2f7;
+  --body-bg-end: #e8eaef;
+  --filter-bar-bg: rgba(255, 255, 255, 0.75);
+  --col-shadow: rgba(0, 0, 0, 0.08);
+
+  --input-bg: rgba(0, 0, 0, 0.04);
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-color: #1a1d2e;
+  --input-placeholder: rgba(0, 0, 0, 0.35);
+
+  --hover-bg: rgba(0, 0, 0, 0.04);
+  --hover-bg-strong: rgba(0, 0, 0, 0.08);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(0, 0, 0, 0.2);
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.2);
+
+  --shimmer-from: rgba(0, 0, 0, 0.03);
+  --shimmer-mid: rgba(0, 0, 0, 0.07);
+
+  --text-muted: #94a3b8;
+
+  --cl-editor-bg: #f8fafc;
+  --cl-editor-border: #e2e8f0;
+  --cl-title-color: #1e293b;
+  --cl-progress-label: #94a3b8;
+  --cl-progress-bar-bg: #e2e8f0;
+  --cl-input-bg: #ffffff;
+  --cl-grip-color: #94a3b8;
+  --cl-item-text: #374151;
+  --cl-item-done: #94a3b8;
+  --cl-btn-bg: #e2e8f0;
+  --cl-btn-hover: #cbd5e1;
+
+  --md-bg: #ffffff;
+  --md-toolbar-bg: #f1f5f9;
+  --md-border: #e2e8f0;
+  --md-tab-hover-bg: #e2e8f0;
+  --md-tab-active-bg: #d1d5db;
+  --md-tab-active-color: #374151;
+  --md-text: #1e293b;
+  --md-heading: #0f172a;
+  --md-code-bg: #e2e8f0;
+  --md-code-color: #0369a1;
+  --md-blockquote-border: #cbd5e1;
+  --md-blockquote-color: #6b7280;
+  --md-em-color: #4b5563;
+
+  --shortcuts-modal-bg: #ffffff;
+  --shortcuts-border: #e2e8f0;
+  --shortcuts-header-color: #374151;
+  --shortcuts-close-color: #9ca3af;
+  --shortcuts-close-hover-bg: #f3f4f6;
+  --shortcuts-item-hover: #f9fafb;
+  --shortcuts-kbd-bg: #f3f4f6;
+  --shortcuts-kbd-border: #d1d5db;
+  --shortcuts-kbd-color: #6b7280;
+  --shortcuts-plus-color: #9ca3af;
+  --shortcuts-desc-color: #374151;
+  --shortcuts-footer-color: #9ca3af;
+
+  --comments-area-bg: rgba(0, 0, 0, 0.04);
+  --mention-dropdown-bg: #ffffff;
+  --mention-dropdown-border: rgba(0, 0, 0, 0.1);
+  --mention-name-color: #1e293b;
+  --mention-email-color: rgba(0, 0, 0, 0.45);
+  --reaction-btn-bg: rgba(0, 0, 0, 0.04);
+  --reaction-btn-border: rgba(0, 0, 0, 0.08);
+  --reaction-btn-hover-bg: rgba(0, 0, 0, 0.08);
+  --reaction-btn-hover-border: rgba(0, 0, 0, 0.15);
+
+  --assignee-picker-bg: #ffffff;
+  --assignee-name-color: #1e293b;
+  --assignee-email-color: #94a3b8;
+  --assignee-search-placeholder: #94a3b8;
+  --assignee-empty-color: #94a3b8;
+  --avatar-xs-border: rgba(0, 0, 0, 0.1);
+
+  --ep-modal-bg: #ffffff;
+  --ep-title-color: #1a1d2e;
+  --ep-item-label-color: #374151;
+  --ep-item-desc-color: #6b7280;
+  --ep-item-hover: rgba(0, 0, 0, 0.03);
+  --ep-close-bg: rgba(0, 0, 0, 0.05);
+  --ep-close-hover-bg: rgba(0, 0, 0, 0.1);
+  --ep-toggle-bg: rgba(0, 0, 0, 0.08);
+  --ep-toggle-border: rgba(0, 0, 0, 0.1);
+  --ep-note-border: rgba(0, 0, 0, 0.06);
+  --ep-note-color: #6b7280;
+
+  color-scheme: light;
 }
 
 body {
@@ -17,9 +255,9 @@ body {
   font-family: var(--font-base);
   background-color: var(--bg-color);
   color: var(--text-primary);
-  background: radial-gradient(circle at 10% 20%, #171822 0%, #0d0f14 90%);
+  background: radial-gradient(circle at 10% 20%, var(--body-bg-start) 0%, var(--body-bg-end) 90%);
   min-height: 100vh;
-  overflow: hidden; /* App fills screen */
+  overflow: hidden;
 }
 
 /* Global Layout */
@@ -31,9 +269,9 @@ body {
 }
 
 .header {
-  background: rgba(22, 25, 33, 0.6);
+  background: var(--header-bg);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-subtle);
   padding: 16px 32px;
   display: flex;
   justify-content: space-between;
@@ -61,7 +299,27 @@ body {
   padding: 32px;
   overflow-x: auto;
   align-items: flex-start;
-  border-top: 1px solid rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-faint);
+}
+
+/* ── Theme toggle button ──────────────────────────────────────────────────────── */
+.theme-toggle-btn {
+  background: var(--hover-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--hover-bg-strong);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
 
 /* ── Header responsivo ───────────────────────────────────────────────────── */
@@ -91,8 +349,8 @@ body {
 /* Scrollbars visuais */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
 /* Column Styles */
 .column {
@@ -100,7 +358,7 @@ body {
   min-width: 320px;
   width: 320px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
@@ -114,7 +372,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-faint);
 }
 
 .column-content {
@@ -132,14 +390,14 @@ body {
   border-radius: 10px;
   padding: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
   cursor: grab;
   transition: transform 0.15s ease, border-color 0.15s ease;
   position: relative;
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--card-hover-border);
   transform: translateY(-2px);
 }
 
@@ -178,7 +436,7 @@ body {
 }
 
 .new-card-btn:hover {
-  background: rgba(255,255,255,0.06);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 
@@ -205,4 +463,3 @@ body {
 
 .animate-slide { animation: slideDown 0.3s ease-out forwards; }
 .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
-

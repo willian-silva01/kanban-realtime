@@ -10,7 +10,7 @@
 }
 
 .ep-modal {
-  background: #1A1D2E;
+  background: var(--ep-modal-bg);
   border: 1px solid rgba(106, 56, 227, 0.3);
   border-radius: 14px;
   padding: 28px;
@@ -30,19 +30,19 @@
   margin: 0 0 4px;
   font-size: 1rem;
   font-weight: 700;
-  color: #E8EAED;
+  color: var(--ep-title-color);
 }
 
 .ep-subtitle {
   margin: 0;
   font-size: 0.8rem;
-  color: #6B7280;
+  color: var(--text-secondary);
 }
 
 .ep-close {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--ep-close-bg);
   border: none;
-  color: #9CA3AF;
+  color: var(--text-secondary);
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -54,7 +54,7 @@
   flex-shrink: 0;
   transition: background 0.15s, color 0.15s;
 }
-.ep-close:hover { background: rgba(255,255,255,0.12); color: #E8EAED; }
+.ep-close:hover { background: var(--ep-close-hover-bg); color: var(--text-primary); }
 
 .ep-error {
   color: #F87171;
@@ -64,7 +64,7 @@
 
 .ep-loading {
   text-align: center;
-  color: #6B7280;
+  color: var(--text-secondary);
   padding: 24px 0;
   font-size: 0.85rem;
 }
@@ -87,7 +87,7 @@
   border-radius: 8px;
   transition: background 0.15s;
 }
-.ep-item:hover { background: rgba(255, 255, 255, 0.03); }
+.ep-item:hover { background: var(--ep-item-hover); }
 
 .ep-item-text {
   display: flex;
@@ -99,12 +99,12 @@
 .ep-item-label {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #CBD5E0;
+  color: var(--ep-item-label-color);
 }
 
 .ep-item-desc {
   font-size: 0.78rem;
-  color: #4A5568;
+  color: var(--ep-item-desc-color);
 }
 
 /* Toggle switch */
@@ -113,8 +113,8 @@
   width: 40px;
   height: 22px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--ep-toggle-bg);
+  border: 1px solid var(--ep-toggle-border);
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
   flex-shrink: 0;
@@ -148,8 +148,8 @@
 .ep-note {
   margin: 20px 0 0;
   font-size: 0.75rem;
-  color: #4A5568;
+  color: var(--ep-note-color);
   line-height: 1.5;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--ep-note-border);
   padding-top: 14px;
 }

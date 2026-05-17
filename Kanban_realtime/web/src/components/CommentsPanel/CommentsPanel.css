@@ -1,5 +1,5 @@
 .comments-area {
-  background: rgba(0,0,0,0.15);
+  background: var(--comments-area-bg);
   padding: 8px;
   border-radius: 6px;
 }
@@ -22,10 +22,10 @@
   bottom: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: #1e1e2e;
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--mention-dropdown-bg);
+  border: 1px solid var(--mention-dropdown-border);
   border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   z-index: 100;
 }
@@ -60,14 +60,14 @@
 
 .mention-dropdown-name {
   font-size: 0.82rem;
-  color: #e2e8f0;
+  color: var(--mention-name-color);
   font-weight: 500;
   flex: 1;
 }
 
 .mention-dropdown-email {
   font-size: 0.72rem;
-  color: rgba(255,255,255,0.4);
+  color: var(--mention-email-color);
 }
 
 /* ── Barra de reações ──────────────────────────────────────────── */
@@ -82,8 +82,8 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--reaction-btn-bg);
+  border: 1px solid var(--reaction-btn-border);
   border-radius: 12px;
   padding: 2px 6px;
   cursor: pointer;
@@ -93,8 +93,8 @@
 }
 
 .reaction-btn:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.2);
+  background: var(--reaction-btn-hover-bg);
+  border-color: var(--reaction-btn-hover-border);
   transform: scale(1.1);
 }
 
@@ -122,4 +122,3 @@
 .reaction-btn--active .reaction-count {
   color: var(--brand, #6366f1);
 }
-

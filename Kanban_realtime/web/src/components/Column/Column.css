@@ -5,8 +5,8 @@
   border-radius: 12px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 4px 6px -1px var(--col-shadow);
+  border: 1px solid var(--border-medium);
   overflow: hidden;
   max-height: 100%;
 }
@@ -16,7 +16,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid rgba(255,255,255,0.02);
+  border-bottom: 2px solid var(--border-faint);
 }
 .column-content {
   padding: 12px;

@@ -1,8 +1,8 @@
 .assignee-picker {
   margin-top: 8px;
   padding: 10px;
-  background: rgba(15, 15, 30, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--assignee-picker-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   z-index: 100;
 }
@@ -17,7 +17,7 @@
 .assignee-picker-title {
   font-size: 0.72rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -25,7 +25,7 @@
 .assignee-picker-close {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.75rem;
   padding: 0 2px;
@@ -38,10 +38,10 @@
 .assignee-picker-search {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 6px;
-  color: #e2e8f0;
+  color: var(--input-color);
   font-size: 0.78rem;
   padding: 5px 8px;
   font-family: inherit;
@@ -52,7 +52,7 @@
   border-color: rgba(106, 56, 227, 0.5);
 }
 .assignee-picker-search::placeholder {
-  color: #475569;
+  color: var(--assignee-search-placeholder);
 }
 
 .assignee-picker-list {
@@ -65,7 +65,7 @@
 
 .assignee-picker-empty {
   font-size: 0.75rem;
-  color: #475569;
+  color: var(--assignee-empty-color);
   text-align: center;
   padding: 8px 0;
 }
@@ -107,7 +107,7 @@
 .assignee-name {
   font-size: 0.78rem;
   font-weight: 500;
-  color: #e2e8f0;
+  color: var(--assignee-name-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -115,7 +115,7 @@
 
 .assignee-email {
   font-size: 0.68rem;
-  color: #64748b;
+  color: var(--assignee-email-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -152,5 +152,5 @@
   width: 20px;
   height: 20px;
   font-size: 0.55rem;
-  border: 1.5px solid rgba(15, 15, 30, 0.8);
+  border: 1.5px solid var(--avatar-xs-border);
 }

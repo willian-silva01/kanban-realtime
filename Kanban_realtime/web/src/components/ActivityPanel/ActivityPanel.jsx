@@ -118,7 +118,7 @@ export default function ActivityPanel({ socket, boardId }) {
             width: 320,
             height: '100%',
             background: 'var(--board-bg)',
-            borderLeft: '1px solid rgba(255,255,255,0.1)',
+            borderLeft: '1px solid var(--border-color)',
             boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
             padding: 24,
             display: 'flex',
@@ -131,7 +131,7 @@ export default function ActivityPanel({ socket, boardId }) {
             </h3>
             <button
               onClick={() => setIsOpen(false)}
-              style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}
             >
               ✖
             </button>
@@ -146,7 +146,7 @@ export default function ActivityPanel({ socket, boardId }) {
                   padding: 12,
                   borderRadius: 8,
                   fontSize: '0.85rem',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-faint)',
                 }}
               >
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>

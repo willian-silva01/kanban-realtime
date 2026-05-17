@@ -1,9 +1,9 @@
 .md-editor {
   margin-top: 8px;
-  border: 1px solid #334155;
+  border: 1px solid var(--md-border);
   border-radius: 6px;
   overflow: hidden;
-  background: #1e293b;
+  background: var(--md-bg);
 }
 
 .md-editor-toolbar {
@@ -11,8 +11,8 @@
   align-items: center;
   gap: 2px;
   padding: 4px 6px;
-  background: #0f172a;
-  border-bottom: 1px solid #334155;
+  background: var(--md-toolbar-bg);
+  border-bottom: 1px solid var(--md-border);
 }
 
 .md-tab {
@@ -21,7 +21,7 @@
   gap: 4px;
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 11px;
   padding: 3px 7px;
   border-radius: 4px;
@@ -29,13 +29,13 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.md-tab:hover { background: #1e293b; color: #e2e8f0; }
-.md-tab.active { background: #334155; color: #f1f5f9; }
+.md-tab:hover { background: var(--md-tab-hover-bg); color: var(--md-text); }
+.md-tab.active { background: var(--md-tab-active-bg); color: var(--md-tab-active-color); }
 
 .md-saving {
   margin-left: auto;
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -51,8 +51,8 @@
 .md-editor-textarea {
   width: 100%;
   box-sizing: border-box;
-  background: #1e293b;
-  color: #e2e8f0;
+  background: var(--md-bg);
+  color: var(--md-text);
   border: none;
   outline: none;
   resize: vertical;
@@ -67,7 +67,7 @@
   padding: 10px;
   font-size: 12px;
   line-height: 1.6;
-  color: #e2e8f0;
+  color: var(--md-text);
   min-height: 80px;
   word-break: break-word;
 }
@@ -76,7 +76,7 @@
 .md-editor-preview h1,
 .md-editor-preview h2,
 .md-editor-preview h3 {
-  color: #f1f5f9;
+  color: var(--md-heading);
   margin: 6px 0 4px;
   font-size: 13px;
 }
@@ -92,16 +92,16 @@
 .md-editor-preview li { margin: 2px 0; }
 
 .md-editor-preview code {
-  background: #0f172a;
+  background: var(--md-code-bg);
   border-radius: 3px;
   padding: 1px 4px;
   font-family: monospace;
   font-size: 11px;
-  color: #7dd3fc;
+  color: var(--md-code-color);
 }
 
 .md-editor-preview pre {
-  background: #0f172a;
+  background: var(--md-code-bg);
   border-radius: 4px;
   padding: 8px;
   overflow-x: auto;
@@ -118,12 +118,12 @@
   text-decoration: underline;
 }
 
-.md-editor-preview strong { color: #f1f5f9; }
-.md-editor-preview em { color: #cbd5e1; }
+.md-editor-preview strong { color: var(--md-heading); }
+.md-editor-preview em { color: var(--md-em-color); }
 
 .md-editor-preview blockquote {
-  border-left: 3px solid #475569;
+  border-left: 3px solid var(--md-blockquote-border);
   margin: 4px 0;
   padding: 2px 8px;
-  color: #94a3b8;
+  color: var(--md-blockquote-color);
 }

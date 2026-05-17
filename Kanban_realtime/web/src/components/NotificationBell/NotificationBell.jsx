@@ -60,7 +60,7 @@ export default function NotificationBell({ socket }) {
         style={{
           background: 'none',
           border: 'none',
-          color: unreadCount > 0 ? '#fff' : '#8E9BAE',
+          color: unreadCount > 0 ? 'var(--text-primary)' : 'var(--text-secondary)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
@@ -98,8 +98,8 @@ export default function NotificationBell({ socket }) {
             top: 34,
             right: 0,
             width: 320,
-            background: '#161921',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--board-bg)',
+            border: '1px solid var(--card-border)',
             borderRadius: 8,
             boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
             zIndex: 9999,
@@ -109,7 +109,7 @@ export default function NotificationBell({ socket }) {
           <div
             style={{
               padding: '12px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              borderBottom: '1px solid var(--border-faint)',
               fontWeight: 'bold',
               display: 'flex',
               justifyContent: 'space-between',
@@ -118,7 +118,7 @@ export default function NotificationBell({ socket }) {
           >
             <span>Notificações</span>
             {unreadCount > 0 && (
-              <span style={{ fontSize: '0.75rem', color: '#8E9BAE' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                 {unreadCount} não {unreadCount === 1 ? 'lida' : 'lidas'}
               </span>
             )}
@@ -126,7 +126,7 @@ export default function NotificationBell({ socket }) {
 
           <div style={{ maxHeight: 350, overflowY: 'auto' }}>
             {notifications.length === 0 && (
-              <div style={{ padding: 20, textAlign: 'center', color: 'gray', fontSize: '0.8rem' }}>
+              <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                 Sem notificações
               </div>
             )}
@@ -136,7 +136,7 @@ export default function NotificationBell({ socket }) {
                 onClick={() => !notif.read && markAsRead(notif.id)}
                 style={{
                   padding: 12,
-                  borderBottom: '1px solid rgba(255,255,255,0.02)',
+                  borderBottom: '1px solid var(--border-faint)',
                   cursor: notif.read ? 'default' : 'pointer',
                   background: notif.read ? 'transparent' : 'rgba(106, 56, 227, 0.1)',
                   display: 'flex',
@@ -156,10 +156,10 @@ export default function NotificationBell({ socket }) {
                   }}
                 />
                 <div>
-                  <div style={{ fontSize: '0.85rem', color: notif.read ? '#CCC' : '#FFF', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '0.85rem', color: notif.read ? 'var(--text-secondary)' : 'var(--text-primary)', lineHeight: 1.4 }}>
                     {notif.message}
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#8E9BAE', marginTop: 4 }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 4 }}>
                     {new Date(notif.createdAt).toLocaleString()}
                   </div>
                 </div>

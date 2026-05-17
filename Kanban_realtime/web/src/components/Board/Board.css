@@ -15,8 +15,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 20px;
-  background: rgba(22, 25, 33, 0.5);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: var(--filter-bar-bg);
+  border-bottom: 1px solid var(--border-faint);
   overflow-x: auto;
   flex-shrink: 0;
 }
@@ -39,7 +39,7 @@
   border-radius: 12px;
   font-size: 0.76rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--input-bg);
   border: 1px solid transparent;
   color: var(--text-primary);
   cursor: pointer;
@@ -48,7 +48,7 @@
   font-family: inherit;
 }
 .label-filter-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--hover-bg-strong);
 }
 .label-filter-chip.active {
   background: color-mix(in srgb, var(--chip-color) 18%, transparent);
@@ -84,7 +84,7 @@
 .label-filter-sep {
   width: 1px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border-color);
   flex-shrink: 0;
   margin: 0 2px;
 }
@@ -107,8 +107,8 @@
 .board-search-input {
   padding: 4px 28px 4px 26px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
   color: var(--text-primary);
   font-size: 0.76rem;
   font-family: inherit;
@@ -123,8 +123,8 @@
 }
 
 .board-search-input:focus {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-color);
+  background: var(--hover-bg-strong);
   width: 240px;
 }
 
@@ -138,13 +138,13 @@
   height: 16px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--hover-bg-strong);
   color: var(--text-secondary);
   cursor: pointer;
   padding: 0;
   transition: background 0.15s;
 }
-.board-search-clear:hover { background: rgba(255, 255, 255, 0.25); }
+.board-search-clear:hover { background: var(--border-color); }
 
 /* ── Botão e menu de exportação ─────────────────────────────────────────── */
 .board-export-wrapper {
@@ -159,16 +159,16 @@
   padding: 4px 7px;
   border-radius: 8px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #718096;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;
   font-family: inherit;
 }
 .board-shortcuts-btn:hover {
-  color: #a0aec0;
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  border-color: var(--card-hover-border);
+  background: var(--hover-bg);
 }
 
 .board-export-btn {
@@ -196,8 +196,8 @@
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  background: #1e2130;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-1);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 4px;
   z-index: 200;
@@ -222,7 +222,7 @@
   text-align: left;
 }
 .board-export-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--hover-bg);
 }
 
 /* ── Navegação mobile por colunas ───────────────────────────────────────── */
@@ -245,7 +245,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--border-color);
   border: none;
   cursor: pointer;
   padding: 0;
@@ -259,7 +259,7 @@
 
 .board-col-nav-arrow {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -271,7 +271,7 @@
 }
 
 .board-col-nav-arrow:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 

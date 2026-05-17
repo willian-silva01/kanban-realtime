@@ -10,6 +10,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorkspaceStore } from '../stores/workspaceStore';
+import { useThemeStore } from '../stores/themeStore';
+import { Sun, Moon } from 'lucide-react';
 import api from '../services/api';
 
 // ─── Ícones SVG inline ────────────────────────────────────────────────────────
@@ -208,6 +210,8 @@ export default function Dashboard() {
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [creating, setCreating] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
   // Carregar workspaces do usuário
   useEffect(() => {
@@ -278,14 +282,24 @@ export default function Dashboard() {
           <span style={S.logoText}>Kanban Realtime</span>
         </div>
 
-        <button
-          onClick={logout}
-          style={S.logoutBtn}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(227,56,77,0.2)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(227,56,77,0.1)')}
-        >
-          Sair
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            className="theme-toggle-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
+          <button
+            onClick={logout}
+            style={S.logoutBtn}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(227,56,77,0.2)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(227,56,77,0.1)')}
+          >
+            Sair
+          </button>
+        </div>
       </header>
 
       {/* ── Conteúdo ─────────────────────────────────────────── */}
@@ -444,11 +458,11 @@ export default function Dashboard() {
 const S = {
   page: {
     minHeight: '100vh',
-    background: '#0d0f14',
+    background: 'var(--bg-color)',
     display: 'flex',
     flexDirection: 'column',
     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-    color: '#F0F2F5',
+    color: 'var(--text-primary)',
   },
   header: {
     display: 'flex',
@@ -456,8 +470,8 @@ const S = {
     justifyContent: 'space-between',
     padding: '0 28px',
     height: 56,
-    borderBottom: '1px solid rgba(255,255,255,0.07)',
-    background: 'rgba(13,15,20,0.95)',
+    borderBottom: '1px solid var(--border-subtle)',
+    background: 'var(--header-bg)',
     backdropFilter: 'blur(12px)',
     position: 'sticky',
     top: 0,
@@ -466,7 +480,7 @@ const S = {
   logoText: {
     fontSize: '1rem',
     fontWeight: 700,
-    color: '#F0F2F5',
+    color: 'var(--text-primary)',
     letterSpacing: '-0.3px',
   },
   logoutBtn: {
@@ -490,8 +504,8 @@ const S = {
   sidebar: {
     width: 280,
     flexShrink: 0,
-    borderRight: '1px solid rgba(255,255,255,0.07)',
-    background: 'rgba(16,18,26,0.7)',
+    borderRight: '1px solid var(--border-subtle)',
+    background: 'var(--col-bg)',
     display: 'flex',
     flexDirection: 'column',
     overflowY: 'auto',
@@ -555,7 +569,7 @@ const S = {
     display: 'block',
     fontSize: '0.88rem',
     fontWeight: 600,
-    color: '#E4E8F0',
+    color: 'var(--text-primary)',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -565,7 +579,7 @@ const S = {
     alignItems: 'center',
     gap: 4,
     fontSize: '0.72rem',
-    color: '#8E9BAE',
+    color: 'var(--text-secondary)',
     marginTop: 2,
   },
   activeIndicator: { color: '#A881FC', flexShrink: 0 },
@@ -587,9 +601,9 @@ const S = {
     fontSize: '1.35rem',
     fontWeight: 700,
     margin: '0 0 4px',
-    color: '#F0F2F5',
+    color: 'var(--text-primary)',
   },
-  contentSub: { fontSize: '0.8rem', color: '#8E9BAE', margin: 0 },
+  contentSub: { fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0 },
   newBoardBtn: {
     display: 'flex',
     alignItems: 'center',
@@ -617,8 +631,8 @@ const S = {
     flexDirection: 'column',
     alignItems: 'flex-start',
     gap: 8,
-    background: 'rgba(22,25,33,0.8)',
-    border: '1px solid rgba(255,255,255,0.07)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-subtle)',
     borderRadius: 12,
     padding: '20px 18px',
     cursor: 'pointer',
@@ -632,14 +646,14 @@ const S = {
   boardName: {
     fontSize: '0.95rem',
     fontWeight: 600,
-    color: '#E4E8F0',
+    color: 'var(--text-primary)',
     lineHeight: 1.3,
   },
-  boardMeta: { fontSize: '0.75rem', color: '#8E9BAE' },
+  boardMeta: { fontSize: '0.75rem', color: 'var(--text-secondary)' },
   // Empty / loading states
-  loading: { padding: '24px 18px', color: '#8E9BAE', fontSize: '0.85rem' },
+  loading: { padding: '24px 18px', color: 'var(--text-secondary)', fontSize: '0.85rem' },
   empty: { padding: '24px 18px', display: 'flex', flexDirection: 'column', gap: 12 },
-  emptyText: { color: '#8E9BAE', fontSize: '0.85rem', margin: 0 },
+  emptyText: { color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 },
   emptyBtn: {
     background: 'rgba(106,56,227,0.15)',
     border: '1px solid rgba(106,56,227,0.3)',
@@ -660,7 +674,7 @@ const S = {
     justifyContent: 'center',
     gap: 16,
     padding: 32,
-    color: '#8E9BAE',
+    color: 'var(--text-secondary)',
   },
   bigIcon: {
     width: 56,
@@ -686,8 +700,8 @@ const S = {
     zIndex: 1000,
   },
   modal: {
-    background: 'rgba(22,25,33,0.98)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--surface-1)',
+    border: '1px solid var(--border-color)',
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -700,11 +714,11 @@ const S = {
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  modalTitle: { fontSize: '1rem', fontWeight: 700, color: '#F0F2F5' },
+  modalTitle: { fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' },
   iconBtn: {
     background: 'none',
     border: 'none',
-    color: '#8E9BAE',
+    color: 'var(--text-secondary)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -716,7 +730,7 @@ const S = {
     display: 'block',
     fontSize: '0.78rem',
     fontWeight: 600,
-    color: '#C9D1D9',
+    color: 'var(--text-primary)',
     textTransform: 'uppercase',
     letterSpacing: '0.4px',
     marginBottom: 8,
@@ -726,9 +740,9 @@ const S = {
     boxSizing: 'border-box',
     padding: '11px 14px',
     borderRadius: 10,
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: 'rgba(255,255,255,0.04)',
-    color: '#F0F2F5',
+    border: '1px solid var(--card-border)',
+    background: 'var(--input-bg)',
+    color: 'var(--input-color)',
     fontSize: '0.9rem',
     outline: 'none',
     fontFamily: 'inherit',
@@ -736,9 +750,9 @@ const S = {
   inputError: { borderColor: 'rgba(248,81,73,0.5)' },
   fieldError: { color: '#ff7b72', fontSize: '0.78rem', margin: '6px 0 0' },
   cancelBtn: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#C9D1D9',
+    background: 'var(--hover-bg)',
+    border: '1px solid var(--border-color)',
+    color: 'var(--text-primary)',
     borderRadius: 8,
     padding: '8px 16px',
     fontSize: '0.83rem',
@@ -796,8 +810,8 @@ const S = {
     gap: 4,
     padding: '10px 12px',
     borderRadius: 10,
-    border: '1px solid rgba(255,255,255,0.08)',
-    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid var(--card-border)',
+    background: 'var(--hover-bg)',
     cursor: 'pointer',
     textAlign: 'left',
     fontFamily: 'inherit',
@@ -812,11 +826,11 @@ const S = {
   templateLabel: {
     fontSize: '0.82rem',
     fontWeight: 600,
-    color: '#E4E8F0',
+    color: 'var(--text-primary)',
   },
   templateDesc: {
     fontSize: '0.73rem',
-    color: '#8E9BAE',
+    color: 'var(--text-secondary)',
     lineHeight: 1.3,
   },
   templateCols: {

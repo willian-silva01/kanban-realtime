@@ -1,7 +1,7 @@
 .cl-editor {
   margin-top: 8px;
-  background: #1e2130;
-  border: 1px solid #2e3347;
+  background: var(--cl-editor-bg);
+  border: 1px solid var(--cl-editor-border);
   border-radius: 6px;
   padding: 10px;
   font-size: 0.78rem;
@@ -12,7 +12,7 @@
   align-items: center;
   gap: 5px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -24,7 +24,7 @@
 .cl-block {
   margin-bottom: 10px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #2e3347;
+  border-bottom: 1px solid var(--cl-editor-border);
 }
 
 .cl-block:last-of-type {
@@ -43,19 +43,19 @@
 .cl-block-title {
   flex: 1;
   font-weight: 600;
-  color: #e2e8f0;
+  color: var(--cl-title-color);
   font-size: 0.8rem;
 }
 
 .cl-progress-label {
   font-size: 0.72rem;
-  color: #64748b;
+  color: var(--cl-progress-label);
 }
 
 .cl-block-del {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--cl-progress-label);
   cursor: pointer;
   padding: 2px;
   border-radius: 3px;
@@ -78,7 +78,7 @@
 
 .cl-progress-bar {
   height: 4px;
-  background: #2e3347;
+  background: var(--cl-progress-bar-bg);
   border-radius: 2px;
   margin-bottom: 6px;
   overflow: hidden;
@@ -101,7 +101,7 @@
 }
 
 .cl-item-grip {
-  color: #3f4a5e;
+  color: var(--cl-grip-color);
   cursor: grab;
   display: flex;
   align-items: center;
@@ -122,7 +122,7 @@
 
 .cl-item-text {
   flex: 1;
-  color: #cbd5e1;
+  color: var(--cl-item-text);
   cursor: text;
   line-height: 1.4;
   word-break: break-word;
@@ -130,15 +130,15 @@
 
 .cl-item-text--done {
   text-decoration: line-through;
-  color: #475569;
+  color: var(--cl-item-done);
 }
 
 .cl-item-input {
   flex: 1;
-  background: #0f1420;
+  background: var(--cl-input-bg);
   border: 1px solid #6a38e3;
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--input-color);
   font-size: 0.78rem;
   padding: 2px 5px;
   outline: none;
@@ -147,7 +147,7 @@
 .cl-item-del {
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--cl-progress-label);
   cursor: pointer;
   padding: 2px;
   border-radius: 3px;
@@ -178,10 +178,10 @@
 
 .cl-new-item-input {
   flex: 1;
-  background: #0f1420;
+  background: var(--cl-input-bg);
   border: 1px solid #6a38e3;
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--input-color);
   font-size: 0.78rem;
   padding: 3px 6px;
   outline: none;
@@ -217,10 +217,10 @@
 
 .cl-new-input {
   flex: 1;
-  background: #0f1420;
+  background: var(--cl-input-bg);
   border: 1px solid #6a38e3;
   border-radius: 4px;
-  color: #e2e8f0;
+  color: var(--input-color);
   font-size: 0.78rem;
   padding: 4px 7px;
   outline: none;
@@ -231,8 +231,8 @@
   align-items: center;
   gap: 4px;
   background: none;
-  border: 1px dashed #2e3347;
-  color: #64748b;
+  border: 1px dashed var(--cl-editor-border);
+  color: var(--cl-progress-label);
   cursor: pointer;
   font-size: 0.75rem;
   padding: 4px 8px;
@@ -251,9 +251,9 @@
 /* ── Shared buttons ── */
 
 .cl-btn {
-  background: #2e3347;
+  background: var(--cl-btn-bg);
   border: none;
-  color: #94a3b8;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 0.72rem;
   padding: 3px 7px;
@@ -263,7 +263,7 @@
 }
 
 .cl-btn:hover {
-  background: #3a4157;
+  background: var(--cl-btn-hover);
 }
 
 .cl-btn--primary {
