@@ -65,3 +65,27 @@
 .sk-line--title  { height: 14px; width: 80%; }
 .sk-line--desc   { height: 10px; width: 65%; }
 .sk-line--short  { width: 40%; }
+
+@media (max-width: 767px) {
+  .sk-board {
+    padding: 12px;
+    gap: 0;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 12px;
+  }
+
+  .sk-column {
+    min-width: calc(100vw - 24px);
+    width: calc(100vw - 24px);
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    max-height: calc(100vh - 170px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sk-column {
+    min-width: 280px;
+    width: 280px;
+  }
+}

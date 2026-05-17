@@ -26,3 +26,20 @@
   flex-direction: column;
   gap: 10px;
 }
+
+@media (max-width: 767px) {
+  .column-container {
+    min-width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    max-height: calc(100vh - 210px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .column-container {
+    min-width: 280px;
+    max-width: 280px;
+  }
+}

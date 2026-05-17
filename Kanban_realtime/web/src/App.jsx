@@ -88,10 +88,10 @@ function BoardPage() {
           Kanban Realtime
         </h1>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {/* Usuários Online */}
           {onlineUsers.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="header-online" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '0.8rem', color: '#8E9BAE', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Online ({onlineUsers.length})
               </span>
@@ -136,6 +136,7 @@ function BoardPage() {
             </div>
 
             <button
+              className="header-email-pref"
               onClick={() => setShowEmailPrefs(true)}
               title="Preferências de e-mail"
               style={{

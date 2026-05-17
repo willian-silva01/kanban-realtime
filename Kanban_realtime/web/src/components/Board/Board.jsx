@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -63,12 +64,35 @@ export default function Board({ socket, boardId, user }) {
   const offlineQueueRef = useRef([]);
   const lastEmitTime = useRef(0);
   const searchInputRef = useRef(null);
+  const boardContainerRef = useRef(null);
   const THROTTLE_MS = 50;
+
+  const [activeColIndex, setActiveColIndex] = useState(0);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // ── Navegação mobile por colunas ─────────────────────────────────────────
+
+  const scrollToCol = (idx) => {
+    const el = boardContainerRef.current;
+    if (!el) return;
+    const colWidth = el.clientWidth - 24; // 12px padding em cada lado
+    el.scrollTo({ left: idx * colWidth, behavior: 'smooth' });
+    setActiveColIndex(idx);
+  };
+
+  const handleColScroll = () => {
+    const el = boardContainerRef.current;
+    if (!el) return;
+    const colWidth = el.clientWidth - 24;
+    if (colWidth <= 0) return;
+    const idx = Math.round(el.scrollLeft / colWidth);
+    setActiveColIndex(Math.min(Math.max(0, idx), columns.length - 1));
+  };
 
   // ── Atalho Ctrl+F para focar a busca ──────────────────────────────────────
 
@@ -408,7 +432,12 @@ export default function Board({ socket, boardId, user }) {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="board-container" onPointerMove={handlePointerMove}>
+        <div
+          ref={boardContainerRef}
+          className="board-container"
+          onPointerMove={handlePointerMove}
+          onScroll={handleColScroll}
+        >
           <CursorsLayer socket={socket} />
 
           <SortableContext
@@ -441,6 +470,39 @@ export default function Board({ socket, boardId, user }) {
           </DragOverlay>
         </div>
       </DndContext>
+
+      {/* ── Navegação mobile por colunas ────────────────────────────────── */}
+      {columns.length > 1 && (
+        <div className="board-col-nav">
+          <button
+            className="board-col-nav-arrow"
+            onClick={() => scrollToCol(Math.max(0, activeColIndex - 1))}
+            disabled={activeColIndex === 0}
+            aria-label="Coluna anterior"
+          >
+            ‹
+          </button>
+          <div className="board-col-dots">
+            {columns.map((col, i) => (
+              <button
+                key={col.id}
+                className={`board-col-dot ${i === activeColIndex ? 'active' : ''}`}
+                onClick={() => scrollToCol(i)}
+                title={col.title}
+                aria-label={`Ir para coluna ${col.title}`}
+              />
+            ))}
+          </div>
+          <button
+            className="board-col-nav-arrow"
+            onClick={() => scrollToCol(Math.min(columns.length - 1, activeColIndex + 1))}
+            disabled={activeColIndex === columns.length - 1}
+            aria-label="Próxima coluna"
+          >
+            ›
+          </button>
+        </div>
+      )}
     </div>
   );
 }
