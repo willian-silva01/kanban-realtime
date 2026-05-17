@@ -17,7 +17,7 @@ import { GripVertical, Plus, Trash2, CheckSquare } from 'lucide-react';
 import api from '../../services/api';
 import './ChecklistEditor.css';
 
-function SortableItem({ item, checklistId, cardId, boardId, socket, onToggle, onDelete, onTextEdit }) {
+function SortableItem({ item, checklistId, onToggle, onDelete, onTextEdit }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   });

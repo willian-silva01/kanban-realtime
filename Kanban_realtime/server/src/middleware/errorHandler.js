@@ -5,7 +5,7 @@
 const ApiError = require('../utils/ApiError');
 const logger = require('../utils/logger');
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   // Log do erro
   logger.error(err.message, {
     stack: err.stack,

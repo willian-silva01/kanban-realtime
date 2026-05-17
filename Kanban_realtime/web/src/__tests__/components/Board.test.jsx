@@ -15,7 +15,7 @@ vi.mock('@dnd-kit/core', () => ({
 
 vi.mock('@dnd-kit/sortable', () => ({
   SortableContext: ({ children }) => <div>{children}</div>,
-  arrayMove: vi.fn((arr, from, to) => arr),
+  arrayMove: vi.fn((arr) => arr),
   horizontalListSortingStrategy: vi.fn(),
   verticalListSortingStrategy: vi.fn(),
   sortableKeyboardCoordinates: vi.fn(),
@@ -41,7 +41,7 @@ vi.mock('../../components/Board/CursorsLayer', () => ({
   default: () => <div data-testid="cursors-layer" />,
 }));
 
-function makeSocket(handlers = {}) {
+function makeSocket() {
   const listeners = {};
   return {
     on: vi.fn((event, cb) => { listeners[event] = cb; }),

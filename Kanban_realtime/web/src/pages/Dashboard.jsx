@@ -106,8 +106,6 @@ function CreateModal({ title, label, placeholder, onConfirm, onClose, isLoading 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const user = useWorkspaceStore((s) => s); // just trigger re-renders via dedicated selectors
-
   // Zustand
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);

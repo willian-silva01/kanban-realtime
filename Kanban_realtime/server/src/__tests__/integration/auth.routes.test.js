@@ -4,10 +4,8 @@ jest.mock('express-rate-limit', () => () => (req, res, next) => next());
 
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const app = require('../../app');
 const prisma = require('../../config/database');
-const UserModel = require('../../modules/user/user.model');
 
 const TEST_USER = {
   id: 'user-1',

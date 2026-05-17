@@ -19,7 +19,7 @@ const emitActivity = (boardId, log) => {
       metadata: log.metadata,
       createdAt: log.createdAt
     });
-  } catch(e) { console.log('Socket ignorado no REST (se não iniciado)') }
+  } catch(_e) { console.log('Socket ignorado no REST (se não iniciado)') }
 };
 
 class CardService {

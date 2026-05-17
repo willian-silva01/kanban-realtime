@@ -119,7 +119,24 @@ export default function CommentsPanel({ cardId, socket, boardMembers = [] }) {
     });
   }, [newComment, mentionStart]);
 
-  // ─── 6. Teclado no textarea ───────────────────────────────────────
+  // ─── 6. Enviar comentário ─────────────────────────────────────────
+  const handlePost = useCallback(async (e) => {
+    e?.preventDefault();
+    const text = newComment.trim();
+    if (!text || isSending) return;
+    setIsSending(true);
+    try {
+      const resp = await api.post(`/cards/${cardId}/comments`, { content: text });
+      if (resp.data.success) setNewComment('');
+    } catch (err) {
+      if (err.response?.status !== 401) console.error('[CommentsPanel] Erro ao enviar:', err.message);
+    } finally {
+      setIsSending(false);
+      textareaRef.current?.focus();
+    }
+  }, [newComment, isSending, cardId]);
+
+  // ─── 7. Teclado no textarea ───────────────────────────────────────
   const handleKeyDown = useCallback((e) => {
     e.stopPropagation(); // previne DnD kit
 
@@ -138,24 +155,7 @@ export default function CommentsPanel({ cardId, socket, boardMembers = [] }) {
       e.preventDefault();
       handlePost();
     }
-  }, [dropdownOpen, filteredMembers, dropdownIndex, insertMention]);
-
-  // ─── 7. Enviar comentário ─────────────────────────────────────────
-  const handlePost = async (e) => {
-    e?.preventDefault();
-    const text = newComment.trim();
-    if (!text || isSending) return;
-    setIsSending(true);
-    try {
-      const resp = await api.post(`/cards/${cardId}/comments`, { content: text });
-      if (resp.data.success) setNewComment('');
-    } catch (err) {
-      if (err.response?.status !== 401) console.error('[CommentsPanel] Erro ao enviar:', err.message);
-    } finally {
-      setIsSending(false);
-      textareaRef.current?.focus();
-    }
-  };
+  }, [dropdownOpen, filteredMembers, dropdownIndex, insertMention, handlePost]);
 
   // Texto do botão de toggle com contagem
   const toggleLabel = isOpen

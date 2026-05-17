@@ -9,13 +9,11 @@ marked.use({ breaks: true, gfm: true });
 export default function MarkdownEditor({ initialValue = '', onSave, saving }) {
   const [mode, setMode] = useState('edit');
   const [value, setValue] = useState(initialValue);
+  const [hasSaved, setHasSaved] = useState(Boolean(initialValue));
   const debounceRef = useRef(null);
   const savedRef = useRef(initialValue);
 
-  useEffect(() => {
-    setValue(initialValue);
-    savedRef.current = initialValue;
-  }, [initialValue]);
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   const scheduleAutoSave = useCallback(
     (text) => {
@@ -24,13 +22,12 @@ export default function MarkdownEditor({ initialValue = '', onSave, saving }) {
         if (text !== savedRef.current) {
           savedRef.current = text;
           onSave(text || null);
+          setHasSaved(true);
         }
       }, 1000);
     },
     [onSave]
   );
-
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   const handleChange = (e) => {
     const text = e.target.value;
@@ -60,7 +57,7 @@ export default function MarkdownEditor({ initialValue = '', onSave, saving }) {
           <Eye size={11} /> Preview
         </button>
         {saving && <span className="md-saving">salvando…</span>}
-        {!saving && savedRef.current !== null && (
+        {!saving && hasSaved && (
           <span className="md-saved"><Check size={10} /> salvo</span>
         )}
       </div>

@@ -9,7 +9,6 @@ jest.mock('../../websocket/socket', () => ({
 const prisma = require('../../config/database');
 const boardService = require('../../modules/board/board.service');
 const activityService = require('../../modules/activity/activity.service');
-const notificationService = require('../../modules/notification/notification.service');
 const cardService = require('../../modules/card/card.service');
 
 const MOCK_COLUMN = { id: 'col-1', boardId: 'board-1' };

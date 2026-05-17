@@ -53,7 +53,6 @@ export default function Board({ socket, boardId, user }) {
     deleteChecklistItem,
     reorderChecklistItems,
     toggleLabelFilter,
-    clearActiveLabelFilter,
     toggleMyCardsFilter,
     toggleSortByDueDate,
     searchQuery,

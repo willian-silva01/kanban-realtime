@@ -27,8 +27,7 @@ module.exports = (socket, next) => {
     };
 
     next();
-  } catch (error) {
-    // Não logar o erro completo em produção (evita log de tokens)
+  } catch (_error) {
     next(new Error('TOKEN_INVALID'));
   }
 };

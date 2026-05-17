@@ -1,0 +1,163 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+
+jobs:
+  build-images:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "version=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Image tag: ${SHORT_SHA}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/kanban-api:${{ steps.meta.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}/kanban-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: true
+          tags: |
+            ${{ env.IMAGE_PREFIX }}/kanban-web:${{ steps.meta.outputs.version }}
+            ${{ env.IMAGE_PREFIX }}/kanban-web:latest
+          build-args: |
+            VITE_API_URL=${{ vars.VITE_API_URL_STAGING }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd ~/kanban-realtime
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            IMAGE_TAG=${{ needs.build-images.outputs.image_tag }} \
+            GITHUB_REPOSITORY=${{ github.repository }} \
+            docker compose -f docker-compose.prod.yml pull
+            IMAGE_TAG=${{ needs.build-images.outputs.image_tag }} \
+            GITHUB_REPOSITORY=${{ github.repository }} \
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
+
+  smoke-test:
+    name: Smoke Test (Staging)
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+
+    steps:
+      - name: Wait for API to be ready
+        run: |
+          echo "Waiting for staging API..."
+          for i in $(seq 1 12); do
+            if curl -sf "https://${{ secrets.STAGING_HOST }}/api/health" > /dev/null 2>&1; then
+              echo "API is up!"
+              exit 0
+            fi
+            echo "Attempt $i/12 failed, retrying in 10s..."
+            sleep 10
+          done
+          echo "API did not respond in time"
+          exit 1
+
+      - name: Verify health response
+        run: |
+          RESPONSE=$(curl -sf "https://${{ secrets.STAGING_HOST }}/api/health")
+          echo "Health response: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('status',''))")
+          if [ "$STATUS" != "ok" ]; then
+            echo "Health check failed: status is '$STATUS'"
+            exit 1
+          fi
+          echo "Smoke test passed"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [smoke-test]
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd ~/kanban-realtime
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            IMAGE_TAG=${{ needs.build-images.outputs.image_tag }} \
+            GITHUB_REPOSITORY=${{ github.repository }} \
+            docker compose -f docker-compose.prod.yml pull
+            IMAGE_TAG=${{ needs.build-images.outputs.image_tag }} \
+            GITHUB_REPOSITORY=${{ github.repository }} \
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
+
+      - name: Verify production health
+        run: |
+          sleep 15
+          RESPONSE=$(curl -sf "https://${{ secrets.PRODUCTION_HOST }}/api/health")
+          echo "Production health: $RESPONSE"
+          STATUS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('status',''))")
+          if [ "$STATUS" != "ok" ]; then
+            echo "Production health check failed"
+            exit 1
+          fi
+          echo "Production deploy verified"

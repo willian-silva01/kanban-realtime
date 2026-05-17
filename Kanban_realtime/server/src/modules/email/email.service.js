@@ -3,14 +3,6 @@ const crypto = require('crypto');
 const prisma = require('../../config/database');
 const env = require('../../config/env');
 
-const PREF_FIELD = {
-  MENTIONED:        'emailMentions',
-  CARD_ASSIGNED:    'emailAssigned',
-  DUE_DATE_REMINDER:'emailDueDate',
-  BOARD_INVITE:     'emailBoardInvite',
-  WORKSPACE_INVITE: 'emailBoardInvite',
-};
-
 const RATE_LIMIT_MS = 60 * 60 * 1000; // 1 hora
 
 class EmailService {

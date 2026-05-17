@@ -8,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const userRepository = require('../../modules/user/user.repository');
 const userService = require('../../modules/user/user.service');
 const authService = require('../../modules/auth/auth.service');
-const ApiError = require('../../utils/ApiError');
 
 const SAFE_USER = { id: 'user-1', email: 'test@test.com', name: 'Test' };
 
