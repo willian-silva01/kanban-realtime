@@ -111,6 +111,7 @@ class CommentService {
           emailService.sendMentionEmail({
             toEmail: member.user.email,
             toName: member.user.name,
+            toUserId: member.user.id,
             mentionedBy: log.user.name,
             cardTitle: card.title,
             boardName: board?.name ?? '',

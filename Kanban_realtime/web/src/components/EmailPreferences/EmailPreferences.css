@@ -1,0 +1,155 @@
+.ep-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ep-modal {
+  background: #1A1D2E;
+  border: 1px solid rgba(106, 56, 227, 0.3);
+  border-radius: 14px;
+  padding: 28px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.ep-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.ep-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #E8EAED;
+}
+
+.ep-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+.ep-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #9CA3AF;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.ep-close:hover { background: rgba(255,255,255,0.12); color: #E8EAED; }
+
+.ep-error {
+  color: #F87171;
+  font-size: 0.8rem;
+  margin: 0 0 12px;
+}
+
+.ep-loading {
+  text-align: center;
+  color: #6B7280;
+  padding: 24px 0;
+  font-size: 0.85rem;
+}
+
+.ep-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ep-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.ep-item:hover { background: rgba(255, 255, 255, 0.03); }
+
+.ep-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ep-item-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #CBD5E0;
+}
+
+.ep-item-desc {
+  font-size: 0.78rem;
+  color: #4A5568;
+}
+
+/* Toggle switch */
+.ep-toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.ep-toggle--on {
+  background: rgba(106, 56, 227, 0.8);
+  border-color: rgba(106, 56, 227, 0.6);
+}
+
+.ep-toggle:disabled { opacity: 0.5; cursor: default; }
+
+.ep-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.ep-toggle--on .ep-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.ep-note {
+  margin: 20px 0 0;
+  font-size: 0.75rem;
+  color: #4A5568;
+  line-height: 1.5;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 14px;
+}

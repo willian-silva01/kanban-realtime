@@ -27,6 +27,9 @@ const env = {
   // Frontend
   FRONTEND_URL: process.env.FRONTEND_URL,
 
+  // URL pública da aplicação — usada em links de unsubscribe
+  APP_URL: process.env.APP_URL || null,
+
   // SMTP — opcional; e-mails só são enviados se SMTP_HOST estiver definido
   SMTP_HOST: process.env.SMTP_HOST || null,
   SMTP_PORT: parseInt(process.env.SMTP_PORT, 10) || 587,

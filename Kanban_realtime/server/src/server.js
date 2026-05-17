@@ -39,10 +39,15 @@ async function checkDueDateNotifications() {
       });
       if (existing) continue;
 
-      const members = await prisma.boardMember.findMany({ where: { boardId } });
+      const members = await prisma.boardMember.findMany({
+        where: { boardId },
+        include: { user: { select: { id: true, name: true, email: true, emailDueDate: true } } },
+      });
       if (members.length === 0) continue;
 
+      const board = await prisma.board.findUnique({ where: { id: boardId }, select: { name: true } });
       const message = `O card "${card.title}" vence em menos de 24 horas.`;
+
       await prisma.notification.createMany({
         data: members.map((m) => ({
           userId: m.userId,
@@ -51,6 +56,21 @@ async function checkDueDateNotifications() {
           message,
         })),
       });
+
+      // E-mail fire-and-forget para quem tem emailDueDate ativo
+      const emailService = require('./modules/email/email.service');
+      for (const m of members) {
+        if (m.user.emailDueDate) {
+          emailService.sendDueDateEmail({
+            toEmail: m.user.email,
+            toName: m.user.name,
+            toUserId: m.user.id,
+            cardTitle: card.title,
+            boardName: board?.name ?? '',
+            dueDate: card.dueDate,
+          }).catch(() => {});
+        }
+      }
 
       try {
         const { getIo } = require('./websocket/socket');

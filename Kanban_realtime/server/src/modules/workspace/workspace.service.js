@@ -1,5 +1,6 @@
 const prisma = require('../../config/database');
 const ApiError = require('../../utils/ApiError');
+const emailService = require('../email/email.service');
 
 function generateSlug(name) {
   return name
@@ -107,10 +108,25 @@ class WorkspaceService {
       throw ApiError.conflict('Usuário já é membro deste workspace', 'ALREADY_MEMBER');
     }
 
-    return prisma.workspaceMember.create({
+    const member = await prisma.workspaceMember.create({
       data: { workspaceId, userId: targetUser.id, role },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, emailBoardInvite: true } } },
     });
+
+    if (member.user.emailBoardInvite) {
+      const workspace = await prisma.workspace.findUnique({ where: { id: workspaceId }, select: { name: true } });
+      const adder = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+      emailService.sendMemberAddedEmail({
+        toEmail: member.user.email,
+        toName: member.user.name,
+        toUserId: member.user.id,
+        addedBy: adder?.name ?? 'Alguém',
+        contextName: workspace?.name ?? '',
+        contextType: 'workspace',
+      }).catch(() => {});
+    }
+
+    return member;
   }
 
   async removeMember(workspaceId, userId, targetUserId) {

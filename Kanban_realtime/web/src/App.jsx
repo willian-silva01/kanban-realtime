@@ -8,7 +8,7 @@
  *   /board/:id    → board principal (PROTEGIDO)
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -19,6 +19,7 @@ import Board from './components/Board/Board';
 import ActivityPanel from './components/ActivityPanel/ActivityPanel';
 import NotificationBell from './components/NotificationBell/NotificationBell';
 import ConnectionStatus from './components/ConnectionStatus/ConnectionStatus';
+import EmailPreferences from './components/EmailPreferences/EmailPreferences';
 
 import { useAuth } from './contexts/AuthContext';
 import { useAuthStore } from './stores/authStore';
@@ -38,6 +39,7 @@ function BoardPage() {
   const user = useAuthStore((s) => s.user);
   const boardError = useBoardStore((s) => s.boardError);
   const setBoardError = useBoardStore((s) => s.setBoardError);
+  const [showEmailPrefs, setShowEmailPrefs] = useState(false);
 
   // Entra no board e anuncia presença ao conectar (ou reconectar)
   useEffect(() => {
@@ -134,6 +136,26 @@ function BoardPage() {
             </div>
 
             <button
+              onClick={() => setShowEmailPrefs(true)}
+              title="Preferências de e-mail"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: '#9CA3AF',
+                borderRadius: '8px',
+                padding: '6px 8px',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#E8EAED'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#9CA3AF'; }}
+            >
+              ⚙
+            </button>
+
+            <button
               id="logout-btn"
               onClick={logout}
               title="Sair"
@@ -197,6 +219,8 @@ function BoardPage() {
       ) : (
         <Board socket={socket} boardId={boardId} user={user} />
       )}
+
+      {showEmailPrefs && <EmailPreferences onClose={() => setShowEmailPrefs(false)} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@
 
 const prisma = require('../../config/database');
 const ApiError = require('../../utils/ApiError');
+const emailService = require('../email/email.service');
 
 class BoardService {
   /**
@@ -198,10 +199,23 @@ class BoardService {
       },
       include: {
         user: {
-          select: { id: true, name: true, email: true },
+          select: { id: true, name: true, email: true, emailBoardInvite: true },
         },
       },
     });
+
+    if (member.user.emailBoardInvite) {
+      const board = await prisma.board.findUnique({ where: { id: boardId }, select: { name: true } });
+      const adder = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+      emailService.sendMemberAddedEmail({
+        toEmail: member.user.email,
+        toName: member.user.name,
+        toUserId: member.user.id,
+        addedBy: adder?.name ?? 'Alguém',
+        contextName: board?.name ?? '',
+        contextType: 'board',
+      }).catch(() => {});
+    }
 
     return member;
   }

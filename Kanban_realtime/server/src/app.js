@@ -23,6 +23,8 @@ const { boardLabelRouter, cardLabelRouter } = require('./modules/label/label.rou
 const { cardAssigneeRouter } = require('./modules/assignee/assignee.routes');
 const { cardChecklistRouter, checklistRouter } = require('./modules/checklist/checklist.routes');
 const workspaceRoutes = require('./modules/workspace/workspace.routes');
+const emailRoutes = require('./modules/email/email.routes');
+const userRoutes = require('./modules/user/user.routes');
 
 // Inicializar o Express
 const app = express();
@@ -122,6 +124,8 @@ app.use('/api/cards/:cardId/assignees', cardAssigneeRouter);
 app.use('/api/cards/:cardId/checklists', cardChecklistRouter);
 app.use('/api/checklists/:checklistId', checklistRouter);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/users', userRoutes);
 
 // ─── Rota 404 ───────────────────────────────
 app.use((req, res) => {
