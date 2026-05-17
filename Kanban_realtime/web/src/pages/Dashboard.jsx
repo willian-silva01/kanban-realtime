@@ -55,7 +55,16 @@ function initials(name = '') {
   return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
 }
 
-// ─── Modal de criação ─────────────────────────────────────────────────────────
+// ─── Templates de board ───────────────────────────────────────────────────────
+const BOARD_TEMPLATES = [
+  { id: null,       label: 'Em branco',       desc: 'Comece com um board vazio',                  columns: [] },
+  { id: 'scrum',    label: 'Scrum Sprint',     desc: 'Ciclos de desenvolvimento ágil',             columns: ['Backlog', 'To Do', 'In Progress', 'Review', 'Done'] },
+  { id: 'kanban',   label: 'Kanban Simples',   desc: 'Fluxo de trabalho contínuo',                 columns: ['To Do', 'In Progress', 'Done'] },
+  { id: 'roadmap',  label: 'Roadmap',          desc: 'Planejamento por trimestres',                columns: ['Q1', 'Q2', 'Q3', 'Q4'] },
+  { id: 'bugs',     label: 'Gestão de Bugs',   desc: 'Rastreamento de problemas',                  columns: ['Reportado', 'Triagem', 'Em Correção', 'Resolvido'] },
+];
+
+// ─── Modal de criação de workspace ────────────────────────────────────────────
 function CreateModal({ title, label, placeholder, onConfirm, onClose, isLoading }) {
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
@@ -94,6 +103,83 @@ function CreateModal({ title, label, placeholder, onConfirm, onClose, isLoading 
             </button>
             <button type="submit" style={S.submitBtn} disabled={isLoading}>
               {isLoading ? 'Criando...' : 'Criar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal de criação de board com templates ──────────────────────────────────
+function CreateBoardModal({ onConfirm, onClose, isLoading }) {
+  const [name, setName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) { setNameError('Nome do board é obrigatório'); return; }
+    if (trimmed.length > 100) { setNameError('Máximo 100 caracteres'); return; }
+    onConfirm(trimmed, selectedTemplate);
+  };
+
+  return (
+    <div style={S.overlay} onClick={onClose}>
+      <div style={{ ...S.modal, maxWidth: 520 }} onClick={(e) => e.stopPropagation()}>
+        <div style={S.modalHeader}>
+          <span style={S.modalTitle}>Novo Board</span>
+          <button style={S.iconBtn} onClick={onClose}><IconClose /></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <label style={S.label}>Nome do board</label>
+            <input
+              autoFocus
+              value={name}
+              onChange={(e) => { setName(e.target.value); setNameError(''); }}
+              placeholder="Ex: Sprint Q2, Backlog, Roadmap..."
+              style={{ ...S.input, ...(nameError ? S.inputError : {}) }}
+              disabled={isLoading}
+            />
+            {nameError && <p style={S.fieldError}>{nameError}</p>}
+          </div>
+
+          <div>
+            <label style={S.label}>Template</label>
+            <div style={S.templateGrid}>
+              {BOARD_TEMPLATES.map((t) => {
+                const active = selectedTemplate === t.id;
+                return (
+                  <button
+                    key={String(t.id)}
+                    type="button"
+                    style={{ ...S.templateCard, ...(active ? S.templateCardActive : {}) }}
+                    onClick={() => setSelectedTemplate(t.id)}
+                    disabled={isLoading}
+                  >
+                    <span style={S.templateLabel}>{t.label}</span>
+                    <span style={S.templateDesc}>{t.desc}</span>
+                    {t.columns.length > 0 && (
+                      <div style={S.templateCols}>
+                        {t.columns.map((c) => (
+                          <span key={c} style={S.templateColPill}>{c}</span>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button type="button" style={S.cancelBtn} onClick={onClose} disabled={isLoading}>
+              Cancelar
+            </button>
+            <button type="submit" style={S.submitBtn} disabled={isLoading}>
+              {isLoading ? 'Criando...' : 'Criar board'}
             </button>
           </div>
         </form>
@@ -161,11 +247,13 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateBoard = async (name) => {
+  const handleCreateBoard = async (name, template) => {
     if (!currentWorkspace) return;
     setCreating(true);
     try {
-      const res = await api.post('/boards', { name, workspaceId: currentWorkspace.id });
+      const payload = { name, workspaceId: currentWorkspace.id };
+      if (template) payload.template = template;
+      const res = await api.post('/boards', payload);
       const board = res.data.data;
       addBoard(board);
       setShowNewBoard(false);
@@ -342,10 +430,7 @@ export default function Dashboard() {
         />
       )}
       {showNewBoard && (
-        <CreateModal
-          title="Novo Board"
-          label="Nome do board"
-          placeholder="Ex: Sprint Q2, Backlog, Roadmap..."
+        <CreateBoardModal
           onConfirm={handleCreateBoard}
           onClose={() => setShowNewBoard(false)}
           isLoading={creating}
@@ -696,5 +781,58 @@ const S = {
     padding: 0,
     flexShrink: 0,
     fontFamily: 'inherit',
+  },
+  // Template picker
+  templateGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gap: 8,
+    marginTop: 4,
+  },
+  templateCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 4,
+    padding: '10px 12px',
+    borderRadius: 10,
+    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'rgba(255,255,255,0.03)',
+    cursor: 'pointer',
+    textAlign: 'left',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.15s, background 0.15s',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  templateCardActive: {
+    borderColor: 'rgba(106,56,227,0.6)',
+    background: 'rgba(106,56,227,0.1)',
+  },
+  templateLabel: {
+    fontSize: '0.82rem',
+    fontWeight: 600,
+    color: '#E4E8F0',
+  },
+  templateDesc: {
+    fontSize: '0.73rem',
+    color: '#8E9BAE',
+    lineHeight: 1.3,
+  },
+  templateCols: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 3,
+    marginTop: 4,
+  },
+  templateColPill: {
+    fontSize: '0.65rem',
+    fontWeight: 500,
+    color: '#A881FC',
+    background: 'rgba(168,129,252,0.12)',
+    border: '1px solid rgba(168,129,252,0.2)',
+    borderRadius: 4,
+    padding: '1px 5px',
+    whiteSpace: 'nowrap',
   },
 };

@@ -11,6 +11,7 @@ const createBoardSchema = z.object({
     .max(100, 'Nome do board deve ter no máximo 100 caracteres')
     .trim(),
   workspaceId: z.string().uuid('workspaceId inválido').optional(),
+  template: z.enum(['scrum', 'kanban', 'roadmap', 'bugs']).optional(),
 });
 
 const updateBoardSchema = z.object({

@@ -6,6 +6,13 @@ const prisma = require('../../config/database');
 const ApiError = require('../../utils/ApiError');
 const emailService = require('../email/email.service');
 
+const BOARD_TEMPLATES = {
+  scrum:   ['Backlog', 'To Do', 'In Progress', 'Review', 'Done'],
+  kanban:  ['To Do', 'In Progress', 'Done'],
+  roadmap: ['Q1', 'Q2', 'Q3', 'Q4'],
+  bugs:    ['Reportado', 'Triagem', 'Em Correção', 'Resolvido'],
+};
+
 class BoardService {
   /**
    * Listar boards do usuário (que é owner ou membro)
@@ -42,7 +49,7 @@ class BoardService {
   /**
    * Criar novo board
    */
-  async create(userId, { name, workspaceId }) {
+  async create(userId, { name, workspaceId, template }) {
     const board = await prisma.board.create({
       data: {
         name,
@@ -68,6 +75,17 @@ class BoardService {
         },
       },
     });
+
+    const columnNames = template && BOARD_TEMPLATES[template];
+    if (columnNames) {
+      await prisma.column.createMany({
+        data: columnNames.map((colName, idx) => ({
+          boardId: board.id,
+          name: colName,
+          position: idx,
+        })),
+      });
+    }
 
     return board;
   }
