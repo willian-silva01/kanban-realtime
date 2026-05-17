@@ -11,12 +11,13 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X, ArrowUpDown, User, Search, Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { X, ArrowUpDown, User, Search, Download, FileText, FileSpreadsheet, Keyboard } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
 import CursorsLayer from './CursorsLayer';
 import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
+import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import { useBoardStore } from '../../stores/boardStore';
 import { exportToCSV, exportToPDF } from '../../utils/exportBoard';
 import './Board.css';
@@ -61,6 +62,10 @@ export default function Board({ socket, boardId, user }) {
     searchQuery,
     setSearchQuery,
     clearAllFilters,
+    focusedCardId,
+    setFocusedCard,
+    incrementEscapeSeq,
+    triggerCommentsPanel,
   } = useBoardStore();
 
   const offlineQueueRef = useRef([]);
@@ -71,7 +76,14 @@ export default function Board({ socket, boardId, user }) {
 
   const [activeColIndex, setActiveColIndex] = useState(0);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const exportMenuRef = useRef(null);
+
+  // Refs so the keyboard handler reads current state without re-registering
+  const showShortcutsHelpRef = useRef(false);
+  showShortcutsHelpRef.current = showShortcutsHelp;
+  const kbStateRef = useRef({ searchQuery, focusedCardId, columns, cards });
+  kbStateRef.current = { searchQuery, focusedCardId, columns, cards };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -98,23 +110,111 @@ export default function Board({ socket, boardId, user }) {
     setActiveColIndex(Math.min(Math.max(0, idx), columns.length - 1));
   };
 
-  // ── Atalho Ctrl+F para focar a busca ──────────────────────────────────────
+  // ── Atalhos de teclado globais ────────────────────────────────────────────
 
   useEffect(() => {
     const onKeyDown = (e) => {
+      const { searchQuery, focusedCardId, columns, cards } = kbStateRef.current;
+      const tag = document.activeElement?.tagName;
+      const isEditing =
+        tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+
+      // Ctrl/Cmd+F — abrir busca (sempre interceptado para evitar find nativo)
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         searchInputRef.current?.focus();
         searchInputRef.current?.select();
+        return;
       }
-      if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
-        searchInputRef.current?.blur();
+
+      // Esc — fechar modal de atalhos, fechar painéis, limpar busca, desfocalizar
+      if (e.key === 'Escape') {
+        if (showShortcutsHelpRef.current) {
+          setShowShortcutsHelp(false);
+          return;
+        }
+        incrementEscapeSeq();
+        setFocusedCard(null);
         if (searchQuery) setSearchQuery('');
+        if (document.activeElement === searchInputRef.current) searchInputRef.current.blur();
+        return;
+      }
+
+      // Atalhos abaixo só funcionam fora de inputs
+      if (isEditing) return;
+
+      // ? — exibir lista de atalhos
+      if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcutsHelp((v) => !v);
+        return;
+      }
+
+      // N — criar novo cartão na coluna do card focado (ou primeira coluna)
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        const focusedCard = focusedCardId ? cards.find((c) => c.id === focusedCardId) : null;
+        const targetColId = focusedCard?.columnId ?? columns[0]?.id;
+        if (targetColId) {
+          document.querySelector(`[data-add-card-col="${targetColId}"]`)?.click();
+        }
+        return;
+      }
+
+      // Navegação por setas e Enter
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter'].includes(e.key)) return;
+      e.preventDefault();
+
+      // Enter — alternar CommentsPanel do card focado
+      if (e.key === 'Enter' && focusedCardId) {
+        triggerCommentsPanel(focusedCardId);
+        return;
+      }
+
+      // Sem card focado → focar primeiro card
+      if (!focusedCardId) {
+        const first = cards.find((c) => c.columnId === columns[0]?.id);
+        if (first) setFocusedCard(first.id);
+        return;
+      }
+
+      const currentCard = cards.find((c) => c.id === focusedCardId);
+      if (!currentCard) return;
+
+      const colIdx = columns.findIndex((c) => c.id === currentCard.columnId);
+      const colCards = cards.filter((c) => c.columnId === currentCard.columnId);
+      const cardIdxInCol = colCards.findIndex((c) => c.id === focusedCardId);
+
+      if (e.key === 'ArrowDown') {
+        if (cardIdxInCol < colCards.length - 1) {
+          setFocusedCard(colCards[cardIdxInCol + 1].id);
+        } else if (colIdx < columns.length - 1) {
+          const next = cards.filter((c) => c.columnId === columns[colIdx + 1].id);
+          if (next.length) setFocusedCard(next[0].id);
+        }
+      } else if (e.key === 'ArrowUp') {
+        if (cardIdxInCol > 0) {
+          setFocusedCard(colCards[cardIdxInCol - 1].id);
+        } else if (colIdx > 0) {
+          const prev = cards.filter((c) => c.columnId === columns[colIdx - 1].id);
+          if (prev.length) setFocusedCard(prev[prev.length - 1].id);
+        }
+      } else if (e.key === 'ArrowRight') {
+        if (colIdx < columns.length - 1) {
+          const next = cards.filter((c) => c.columnId === columns[colIdx + 1].id);
+          if (next.length) setFocusedCard(next[0].id);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (colIdx > 0) {
+          const prev = cards.filter((c) => c.columnId === columns[colIdx - 1].id);
+          if (prev.length) setFocusedCard(prev[0].id);
+        }
       }
     };
+
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [searchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fechar menu de export ao clicar fora ─────────────────────────────────
 
@@ -371,6 +471,8 @@ export default function Board({ socket, boardId, user }) {
   }
 
   return (
+    <>
+    {showShortcutsHelp && <KeyboardShortcutsHelp onClose={() => setShowShortcutsHelp(false)} />}
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
       {/* ── Barra de Busca + Filtros ─────────────────────────────────────── */}
       <div
@@ -450,6 +552,15 @@ export default function Board({ socket, boardId, user }) {
           </button>
         )}
 
+        {/* Atalhos de teclado */}
+        <button
+          className="board-shortcuts-btn"
+          onClick={() => setShowShortcutsHelp(true)}
+          title="Atalhos de teclado (?)"
+        >
+          <Keyboard size={12} />
+        </button>
+
         {/* Exportar board */}
         <div className="board-export-wrapper" ref={exportMenuRef}>
           <button
@@ -506,6 +617,7 @@ export default function Board({ socket, boardId, user }) {
                 boardMembers={boardMembers}
                 searchQuery={searchQuery}
                 pendingCardIds={pendingCardIds}
+                focusedCardId={focusedCardId}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
                 onDueDateChange={handleDueDateChange}
@@ -555,5 +667,6 @@ export default function Board({ socket, boardId, user }) {
         </div>
       )}
     </div>
+    </>
   );
 }

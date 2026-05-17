@@ -153,6 +153,24 @@
   margin-left: 4px;
 }
 
+.board-shortcuts-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #718096;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+.board-shortcuts-btn:hover {
+  color: #a0aec0;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .board-export-btn {
   display: inline-flex;
   align-items: center;

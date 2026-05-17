@@ -17,6 +17,9 @@ export const useBoardStore = create(
       myCardsFilter: false,
       sortByDueDate: false,
       searchQuery: '',
+      focusedCardId: null,
+      escapeSeq: 0,
+      openCommentsPanelSeq: { cardId: null, seq: 0 },
 
       // Board sync
       setBoardSync: ({ boardName, columns, cards, boardLabels, boardMembers }) =>
@@ -42,6 +45,10 @@ export const useBoardStore = create(
       setSearchQuery: (searchQuery) => set({ searchQuery }),
       clearAllFilters: () =>
         set({ activeLabelFilter: null, myCardsFilter: false, searchQuery: '' }),
+      setFocusedCard: (id) => set({ focusedCardId: id }),
+      incrementEscapeSeq: () => set((s) => ({ escapeSeq: s.escapeSeq + 1 })),
+      triggerCommentsPanel: (cardId) =>
+        set((s) => ({ openCommentsPanelSeq: { cardId, seq: s.openCommentsPanelSeq.seq + 1 } })),
 
       // Cards — supports functional updaters for DnD handlers
       setCards: (updaterOrCards) =>
@@ -239,6 +246,9 @@ export const useBoardStore = create(
           myCardsFilter: false,
           sortByDueDate: false,
           searchQuery: '',
+          focusedCardId: null,
+          escapeSeq: 0,
+          openCommentsPanelSeq: { cardId: null, seq: 0 },
         }),
     }),
     { name: 'BoardStore', enabled: import.meta.env.DEV }

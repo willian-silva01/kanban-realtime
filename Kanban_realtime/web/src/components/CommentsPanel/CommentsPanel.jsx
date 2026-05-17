@@ -25,11 +25,16 @@ function renderContent(content, boardMembers) {
   });
 }
 
-export default function CommentsPanel({ cardId, socket, boardMembers = [] }) {
+export default function CommentsPanel({ cardId, socket, boardMembers = [], toggleRef }) {
   const currentUserId = useAuthStore((s) => s.user?.id);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+
+  // Expõe a função de toggle para o card pai (atalho Enter)
+  useEffect(() => {
+    if (toggleRef) toggleRef.current = () => setIsOpen((v) => !v);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
 

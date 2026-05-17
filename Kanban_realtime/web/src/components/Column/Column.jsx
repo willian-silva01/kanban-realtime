@@ -32,6 +32,7 @@ export default function Column({
   boardMembers,
   searchQuery,
   pendingCardIds,
+  focusedCardId,
   onCardLabelChange,
   onBoardLabelChange,
   onDueDateChange,
@@ -73,6 +74,7 @@ export default function Column({
               boardMembers={boardMembers}
               isPending={pendingCardIds?.has(card.id) ?? false}
               isDimmed={trimmedQuery ? !cardMatchesSearch(card, trimmedQuery) : false}
+              isFocused={focusedCardId === card.id}
               onCardLabelChange={onCardLabelChange}
               onBoardLabelChange={onBoardLabelChange}
               onDueDateChange={onDueDateChange}
@@ -84,7 +86,11 @@ export default function Column({
         </SortableContext>
       </div>
 
-      <button className="new-card-btn" onClick={() => alert('Adicionar card na API...')}>
+      <button
+        className="new-card-btn"
+        data-add-card-col={column.id}
+        onClick={() => alert('Adicionar card na API...')}
+      >
         <Plus size={16} /> Add Card
       </button>
     </div>

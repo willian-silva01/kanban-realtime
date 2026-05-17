@@ -1,0 +1,111 @@
+.shortcuts-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: shortcuts-fade-in 0.12s ease;
+}
+
+@keyframes shortcuts-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.shortcuts-modal {
+  background: #1a1b2e;
+  border: 1px solid #2d2f4a;
+  border-radius: 12px;
+  min-width: 340px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  animation: shortcuts-slide-up 0.14s ease;
+}
+
+@keyframes shortcuts-slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #2d2f4a;
+  color: #c9d1e0;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.shortcuts-header span { flex: 1; }
+
+.shortcuts-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5a6070;
+  padding: 3px;
+  display: flex;
+  border-radius: 5px;
+  transition: color 0.15s, background 0.15s;
+}
+.shortcuts-close:hover { color: #c9d1e0; background: #2d2f4a; }
+
+.shortcuts-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.shortcuts-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 7px 16px;
+  transition: background 0.1s;
+}
+.shortcuts-item:hover { background: #22233a; }
+
+.shortcuts-keys {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 100px;
+  justify-content: flex-end;
+}
+
+.shortcuts-kbd {
+  background: #252640;
+  border: 1px solid #3a3c5c;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: #a0aec0;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.shortcuts-plus {
+  color: #5a6070;
+  font-size: 0.7rem;
+}
+
+.shortcuts-desc {
+  color: #b8c2d0;
+  font-size: 0.82rem;
+  flex: 1;
+}
+
+.shortcuts-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #2d2f4a;
+  color: #5a6070;
+  font-size: 0.75rem;
+  text-align: center;
+}

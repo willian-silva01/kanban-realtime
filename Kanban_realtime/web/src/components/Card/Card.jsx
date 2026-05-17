@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
+import { useBoardStore } from '../../stores/boardStore';
 import { CSS } from '@dnd-kit/utilities';
 import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare } from 'lucide-react';
 import { marked } from 'marked';
@@ -52,6 +53,7 @@ export default function Card({
   isOverlay,
   isPending = false,
   isDimmed = false,
+  isFocused = false,
   socket,
   boardId,
   boardLabels = [],
@@ -72,10 +74,44 @@ export default function Card({
   const [savingDueDate, setSavingDueDate] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
 
+  const escapeSeq = useBoardStore((s) => s.escapeSeq);
+  const openCommentsPanelSeq = useBoardStore((s) => s.openCommentsPanelSeq);
+  const cardDomRef = useRef(null);
+  const commentsToggleRef = useRef(null);
+
+  // Fechar todos os painéis quando Esc é pressionado globalmente
+  useEffect(() => {
+    if (escapeSeq === 0) return;
+    setPickerOpen(false);
+    setAssigneePickerOpen(false);
+    setDueDatePickerOpen(false);
+    setDescEditorOpen(false);
+    setChecklistEditorOpen(false);
+  }, [escapeSeq]);
+
+  // Abrir/fechar CommentsPanel via atalho Enter
+  useEffect(() => {
+    if (openCommentsPanelSeq.cardId === card.id && openCommentsPanelSeq.seq > 0) {
+      commentsToggleRef.current?.();
+    }
+  }, [openCommentsPanelSeq]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Rolar para o card focado
+  useEffect(() => {
+    if (isFocused && cardDomRef.current) {
+      cardDomRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isFocused]);
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'Card', card },
   });
+
+  const mergedRef = (node) => {
+    setNodeRef(node);
+    cardDomRef.current = node;
+  };
 
   const style = {
     transition,
@@ -83,7 +119,12 @@ export default function Card({
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const classNames = `card ${isOverlay ? 'card-ghost' : ''} ${isDimmed ? 'card-dimmed' : ''}`;
+  const classNames = [
+    'card',
+    isOverlay ? 'card-ghost' : '',
+    isDimmed ? 'card-dimmed' : '',
+    isFocused ? 'card--focused' : '',
+  ].filter(Boolean).join(' ');
   const cardLabels = card.labels ?? [];
   const cardAssignees = card.assignees ?? [];
   const cardChecklists = card.checklists ?? [];
@@ -156,7 +197,7 @@ export default function Card({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={classNames} {...attributes} {...listeners}>
+    <div ref={mergedRef} style={style} className={classNames} {...attributes} {...listeners}>
       {isPending && (
         <div className="card-pending-badge" title="Aguardando sincronização...">
           <RefreshCw size={10} className="card-pending-icon" />
@@ -361,7 +402,7 @@ export default function Card({
         />
       )}
 
-      <CommentsPanel cardId={card.id} socket={socket} boardMembers={boardMembers} />
+      <CommentsPanel cardId={card.id} socket={socket} boardMembers={boardMembers} toggleRef={commentsToggleRef} />
     </div>
   );
 }
