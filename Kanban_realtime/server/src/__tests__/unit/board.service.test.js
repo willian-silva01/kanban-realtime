@@ -75,6 +75,7 @@ describe('BoardService.listByUser', () => {
     expect(prisma.board.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
+          archivedAt: null,
           OR: [{ ownerId: 'user-1' }, { members: { some: { userId: 'user-1' } } }],
         },
       })

@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorkspaceStore } from '../stores/workspaceStore';
 import { useThemeStore } from '../stores/themeStore';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Archive, RotateCcw } from 'lucide-react';
 import api from '../services/api';
 
 // ─── Ícones SVG inline ────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ function CreateBoardModal({ onConfirm, onClose, isLoading }) {
 // ─── Dashboard principal ──────────────────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   // Zustand
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const currentWorkspace = useWorkspaceStore((s) => s.currentWorkspace);
@@ -210,6 +210,11 @@ export default function Dashboard() {
   const [showNewBoard, setShowNewBoard] = useState(false);
   const [creating, setCreating] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [archivedBoards, setArchivedBoards] = useState([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
+  const [restoringBoardId, setRestoringBoardId] = useState(null);
+  const [archivingBoardId, setArchivingBoardId] = useState(null);
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
@@ -248,6 +253,45 @@ export default function Dashboard() {
       setApiError(err.response?.data?.error?.message || 'Erro ao criar workspace.');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleShowArchived = async () => {
+    setShowArchived(true);
+    setLoadingArchived(true);
+    try {
+      const res = await api.get('/boards/archived');
+      setArchivedBoards(res.data.data);
+    } catch {
+      setArchivedBoards([]);
+    } finally {
+      setLoadingArchived(false);
+    }
+  };
+
+  const handleRestoreBoard = async (boardId) => {
+    setRestoringBoardId(boardId);
+    try {
+      await api.post(`/boards/${boardId}/unarchive`);
+      setArchivedBoards((prev) => prev.filter((b) => b.id !== boardId));
+    } catch (err) {
+      setApiError(err.response?.data?.error?.message || 'Erro ao restaurar board.');
+    } finally {
+      setRestoringBoardId(null);
+    }
+  };
+
+  const handleArchiveBoard = async (e, boardId) => {
+    e.stopPropagation();
+    setArchivingBoardId(boardId);
+    try {
+      await api.post(`/boards/${boardId}/archive`);
+      const current = useWorkspaceStore.getState().workspaceBoards;
+      setWorkspaceBoards(current.filter((b) => b.id !== boardId));
+    } catch (err) {
+      setApiError(err.response?.data?.error?.message || 'Erro ao arquivar board.');
+    } finally {
+      setArchivingBoardId(null);
     }
   };
 
@@ -380,15 +424,63 @@ export default function Dashboard() {
                     {currentWorkspace.members?.length ?? 0} membro(s) · {workspaceBoards.length} board(s)
                   </p>
                 </div>
-                <button
-                  style={S.newBoardBtn}
-                  onClick={() => setShowNewBoard(true)}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-                >
-                  <IconPlus /> Novo board
-                </button>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <button
+                    style={{
+                      ...S.emptyBtn,
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      ...(showArchived ? { background: 'rgba(106,56,227,0.25)', borderColor: 'rgba(106,56,227,0.5)' } : {}),
+                    }}
+                    onClick={showArchived ? () => setShowArchived(false) : handleShowArchived}
+                    title="Boards arquivados"
+                  >
+                    <Archive size={13} />
+                    Arquivados
+                  </button>
+                  <button
+                    style={S.newBoardBtn}
+                    onClick={() => setShowNewBoard(true)}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                  >
+                    <IconPlus /> Novo board
+                  </button>
+                </div>
               </div>
+
+              {/* Seção de boards arquivados */}
+              {showArchived && (
+                <div style={S.archivedSection}>
+                  <p style={S.archivedTitle}>
+                    <Archive size={13} /> Boards Arquivados
+                  </p>
+                  {loadingArchived ? (
+                    <p style={S.contentSub}>Carregando...</p>
+                  ) : archivedBoards.length === 0 ? (
+                    <p style={S.contentSub}>Nenhum board arquivado.</p>
+                  ) : (
+                    <div style={S.boardGrid}>
+                      {archivedBoards.map((board) => (
+                        <div key={board.id} style={{ ...S.boardCard, cursor: 'default', opacity: 0.75 }}>
+                          <div style={S.boardCardTop}>
+                            <Archive size={24} color="#8E9BAE" />
+                          </div>
+                          <span style={S.boardName}>{board.name}</span>
+                          <span style={S.boardMeta}>{board._count?.columns ?? 0} colunas</span>
+                          <button
+                            style={{ ...S.emptyBtn, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}
+                            onClick={() => handleRestoreBoard(board.id)}
+                            disabled={restoringBoardId === board.id}
+                          >
+                            <RotateCcw size={12} />
+                            {restoringBoardId === board.id ? 'Restaurando...' : 'Restaurar'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {workspaceBoards.length === 0 ? (
                 <div style={S.centerEmpty}>
@@ -401,9 +493,9 @@ export default function Dashboard() {
               ) : (
                 <div style={S.boardGrid}>
                   {workspaceBoards.map((board) => (
-                    <button
+                    <div
                       key={board.id}
-                      style={S.boardCard}
+                      style={{ ...S.boardCard, cursor: 'pointer' }}
                       onClick={() => navigate(`/board/${board.id}`)}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = 'rgba(106,56,227,0.5)';
@@ -423,7 +515,18 @@ export default function Dashboard() {
                       </div>
                       <span style={S.boardName}>{board.name}</span>
                       <span style={S.boardMeta}>{board._count?.columns ?? 0} colunas</span>
-                    </button>
+                      {board.ownerId === user?.id && (
+                        <button
+                          style={{ ...S.emptyBtn, marginTop: 8, display: 'flex', alignItems: 'center', gap: 5 }}
+                          onClick={(e) => handleArchiveBoard(e, board.id)}
+                          disabled={archivingBoardId === board.id}
+                          title="Arquivar board"
+                        >
+                          <Archive size={12} />
+                          {archivingBoardId === board.id ? 'Arquivando...' : 'Arquivar'}
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -795,6 +898,25 @@ const S = {
     padding: 0,
     flexShrink: 0,
     fontFamily: 'inherit',
+  },
+  // Archived
+  archivedSection: {
+    marginBottom: 28,
+    background: 'rgba(255,255,255,0.02)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 12,
+    padding: '16px 20px 20px',
+  },
+  archivedTitle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    fontSize: '0.8rem',
+    fontWeight: 700,
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+    margin: '0 0 14px',
   },
   // Template picker
   templateGrid: {

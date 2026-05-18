@@ -211,3 +211,7 @@
 
 /* Busca global — dimming */
 .card-dimmed { opacity: 0.25; pointer-events: none; }
+
+/* Botão arquivar card */
+.card-archive-btn { color: var(--text-secondary); }
+.card-archive-btn:hover { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }

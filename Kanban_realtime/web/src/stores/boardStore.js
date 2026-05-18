@@ -217,6 +217,13 @@ export const useBoardStore = create(
           ),
         })),
 
+      // Archive
+      archiveCard: (cardId) =>
+        set((s) => ({ cards: s.cards.filter((c) => c.id !== cardId) })),
+
+      unarchiveCard: (card) =>
+        set((s) => ({ cards: [...s.cards, card] })),
+
       // Board labels
       addBoardLabel: (label) => set((s) => ({ boardLabels: [...s.boardLabels, label] })),
       updateBoardLabel: (label) =>

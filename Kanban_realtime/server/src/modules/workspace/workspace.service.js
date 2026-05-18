@@ -84,7 +84,7 @@ class WorkspaceService {
     await this._checkAccess(workspaceId, userId);
 
     return prisma.board.findMany({
-      where: { workspaceId },
+      where: { workspaceId, archivedAt: null },
       include: {
         owner: { select: { id: true, name: true, email: true } },
         _count: { select: { columns: true } },

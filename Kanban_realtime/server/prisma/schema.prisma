@@ -80,12 +80,13 @@ enum WorkspaceRole {
 
 // ── Board ────────────────────────────────────
 model Board {
-  id          String   @id @default(uuid())
-  name        String   @db.VarChar(100)
-  ownerId     String   @map("owner_id")
-  workspaceId String?  @map("workspace_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  id          String    @id @default(uuid())
+  name        String    @db.VarChar(100)
+  ownerId     String    @map("owner_id")
+  workspaceId String?   @map("workspace_id")
+  archivedAt  DateTime? @map("archived_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
   owner         User          @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
@@ -146,13 +147,14 @@ model Column {
 
 // ── Card ─────────────────────────────────────
 model Card {
-  id          String   @id @default(uuid())
-  columnId    String   @map("column_id")
-  title       String   @db.VarChar(200)
-  description String?  @db.Text
+  id          String    @id @default(uuid())
+  columnId    String    @map("column_id")
+  title       String    @db.VarChar(200)
+  description String?   @db.Text
   position    Int
   createdBy   String    @map("created_by")
   dueDate     DateTime? @map("due_date")
+  archivedAt  DateTime? @map("archived_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 

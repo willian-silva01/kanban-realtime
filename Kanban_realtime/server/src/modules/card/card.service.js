@@ -200,6 +200,52 @@ class CardService {
   }
 
   /**
+   * Arquivar card
+   */
+  async archive(cardId, userId) {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      include: { column: { select: { boardId: true } } },
+    });
+    if (!card) throw ApiError.notFound('Card não encontrado', 'CARD_NOT_FOUND');
+    await boardService._checkAccess(card.column.boardId, userId, ['admin', 'editor']);
+    return prisma.card.update({ where: { id: cardId }, data: { archivedAt: new Date() } });
+  }
+
+  /**
+   * Restaurar card arquivado
+   */
+  async unarchive(cardId, userId) {
+    const card = await prisma.card.findUnique({
+      where: { id: cardId },
+      include: {
+        column: { select: { boardId: true, id: true, name: true } },
+        creator: { select: { id: true, name: true, email: true } },
+        labels: { include: { label: true } },
+      },
+    });
+    if (!card) throw ApiError.notFound('Card não encontrado', 'CARD_NOT_FOUND');
+    await boardService._checkAccess(card.column.boardId, userId, ['admin', 'editor']);
+
+    const updated = await prisma.card.update({
+      where: { id: cardId },
+      data: { archivedAt: null },
+      include: {
+        creator: { select: { id: true, name: true, email: true } },
+        labels: { include: { label: true } },
+        assignees: { include: { user: { select: { id: true, name: true, email: true } } } },
+        checklists: { orderBy: { position: 'asc' }, include: { items: { orderBy: { position: 'asc' } } } },
+      },
+    });
+
+    return {
+      ...updated,
+      labels: updated.labels.map((cl) => cl.label),
+      assignees: updated.assignees.map((ca) => ca.user),
+    };
+  }
+
+  /**
    * Mover card entre colunas (ou reposicionar na mesma coluna)
    */
   async move(cardId, userId, { toColumnId, newPosition }) {

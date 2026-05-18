@@ -86,6 +86,14 @@ module.exports = (io, socket) => {
     socket.to(`board_${boardId}`).emit('card:description:updated', { cardId, description });
   });
 
+  socket.on('card:archive', ({ boardId, cardId }) => {
+    socket.to(`board_${boardId}`).emit('card:archived', { cardId });
+  });
+
+  socket.on('card:unarchive', ({ boardId, card }) => {
+    socket.to(`board_${boardId}`).emit('card:unarchived', { card });
+  });
+
   // ─── COLUMNS ─────────────────────────────────────────────────────────────
 
   socket.on('column:create', ({ boardId, column }) => {

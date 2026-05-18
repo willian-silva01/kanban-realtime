@@ -84,5 +84,21 @@ const move = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { list, create, getById, update, remove, move };
+/**
+ * POST /api/cards/:id/archive
+ */
+const archive = asyncHandler(async (req, res) => {
+  const card = await cardService.archive(req.params.id, req.user.id);
+  res.status(200).json({ success: true, data: card, message: 'Card arquivado com sucesso' });
+});
+
+/**
+ * POST /api/cards/:id/unarchive
+ */
+const unarchive = asyncHandler(async (req, res) => {
+  const card = await cardService.unarchive(req.params.id, req.user.id);
+  res.status(200).json({ success: true, data: card, message: 'Card restaurado com sucesso' });
+});
+
+module.exports = { list, create, getById, update, remove, move, archive, unarchive };
 

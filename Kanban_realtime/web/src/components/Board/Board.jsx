@@ -11,7 +11,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { X, ArrowUpDown, User, Search, Download, FileText, FileSpreadsheet, Keyboard } from 'lucide-react';
+import { X, ArrowUpDown, User, Search, Download, FileText, FileSpreadsheet, Keyboard, Archive, RotateCcw } from 'lucide-react';
 
 import Column from '../Column/Column';
 import Card from '../Card/Card';
@@ -20,6 +20,7 @@ import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import { useBoardStore } from '../../stores/boardStore';
 import { exportToCSV, exportToPDF } from '../../utils/exportBoard';
+import api from '../../services/api';
 import './Board.css';
 
 export default function Board({ socket, boardId, user }) {
@@ -66,6 +67,8 @@ export default function Board({ socket, boardId, user }) {
     setFocusedCard,
     incrementEscapeSeq,
     triggerCommentsPanel,
+    archiveCard,
+    unarchiveCard,
   } = useBoardStore();
 
   const offlineQueueRef = useRef([]);
@@ -77,6 +80,10 @@ export default function Board({ socket, boardId, user }) {
   const [activeColIndex, setActiveColIndex] = useState(0);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showArchivedPanel, setShowArchivedPanel] = useState(false);
+  const [archivedCards, setArchivedCards] = useState([]);
+  const [loadingArchived, setLoadingArchived] = useState(false);
+  const [restoringCardId, setRestoringCardId] = useState(null);
   const exportMenuRef = useRef(null);
 
   // Refs so the keyboard handler reads current state without re-registering
@@ -229,6 +236,34 @@ export default function Board({ socket, boardId, user }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [showExportMenu]);
 
+  const handleOpenArchived = async () => {
+    setShowArchivedPanel(true);
+    setLoadingArchived(true);
+    try {
+      const res = await api.get(`/boards/${boardId}/archived-cards`);
+      setArchivedCards(res.data.data);
+    } catch (err) {
+      console.error('Erro ao carregar cards arquivados', err);
+    } finally {
+      setLoadingArchived(false);
+    }
+  };
+
+  const handleRestoreCard = async (cardId) => {
+    setRestoringCardId(cardId);
+    try {
+      const res = await api.post(`/cards/${cardId}/unarchive`);
+      const restoredCard = res.data.data;
+      unarchiveCard(restoredCard);
+      socket?.emit('card:unarchive', { boardId, card: restoredCard });
+      setArchivedCards((prev) => prev.filter((c) => c.id !== cardId));
+    } catch (err) {
+      console.error('Erro ao restaurar card', err);
+    } finally {
+      setRestoringCardId(null);
+    }
+  };
+
   const handleExportCSV = () => {
     setShowExportMenu(false);
     exportToCSV(boardName, columns, cards);
@@ -314,6 +349,18 @@ export default function Board({ socket, boardId, user }) {
     const onChecklistItemsReordered = ({ cardId, checklistId, items }) =>
       reorderChecklistItems(cardId, checklistId, items);
 
+    const onCardArchived = ({ cardId }) => {
+      archiveCard(cardId);
+      setArchivedCards((prev) => {
+        if (prev.some((c) => c.id === cardId)) return prev;
+        return prev;
+      });
+    };
+    const onCardUnarchived = ({ card }) => {
+      unarchiveCard(card);
+      setArchivedCards((prev) => prev.filter((c) => c.id !== card.id));
+    };
+
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
     socket.on('card:label:added', onCardLabelAdded);
@@ -333,6 +380,8 @@ export default function Board({ socket, boardId, user }) {
     socket.on('checklist:item:updated', onChecklistItemUpdated);
     socket.on('checklist:item:deleted', onChecklistItemDeleted);
     socket.on('checklist:items:reordered', onChecklistItemsReordered);
+    socket.on('card:archived', onCardArchived);
+    socket.on('card:unarchived', onCardUnarchived);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -354,6 +403,8 @@ export default function Board({ socket, boardId, user }) {
       socket.off('checklist:item:updated', onChecklistItemUpdated);
       socket.off('checklist:item:deleted', onChecklistItemDeleted);
       socket.off('checklist:items:reordered', onChecklistItemsReordered);
+      socket.off('card:archived', onCardArchived);
+      socket.off('card:unarchived', onCardUnarchived);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -552,6 +603,17 @@ export default function Board({ socket, boardId, user }) {
           </button>
         )}
 
+        {/* Cards arquivados */}
+        <button
+          className={`board-shortcuts-btn ${showArchivedPanel ? 'active' : ''}`}
+          onClick={showArchivedPanel ? () => setShowArchivedPanel(false) : handleOpenArchived}
+          title="Cards arquivados"
+          style={showArchivedPanel ? { borderColor: 'rgba(106,56,227,0.5)', color: '#A881FC' } : {}}
+        >
+          <Archive size={12} />
+          Arquivados
+        </button>
+
         {/* Atalhos de teclado */}
         <button
           className="board-shortcuts-btn"
@@ -633,6 +695,45 @@ export default function Board({ socket, boardId, user }) {
           </DragOverlay>
         </div>
       </DndContext>
+
+      {/* ── Painel de Cards Arquivados ─────────────────────────────────── */}
+      {showArchivedPanel && (
+        <div className="archived-panel">
+          <div className="archived-panel-header">
+            <span className="archived-panel-title">
+              <Archive size={14} /> Cards Arquivados
+            </span>
+            <button className="archived-panel-close" onClick={() => setShowArchivedPanel(false)}>
+              <X size={14} />
+            </button>
+          </div>
+          <div className="archived-panel-body">
+            {loadingArchived ? (
+              <p className="archived-panel-empty">Carregando...</p>
+            ) : archivedCards.length === 0 ? (
+              <p className="archived-panel-empty">Nenhum card arquivado.</p>
+            ) : (
+              archivedCards.map((c) => (
+                <div key={c.id} className="archived-card-row">
+                  <div className="archived-card-info">
+                    <span className="archived-card-title">{c.title}</span>
+                    <span className="archived-card-col">{c.column?.name}</span>
+                  </div>
+                  <button
+                    className="archived-restore-btn"
+                    onClick={() => handleRestoreCard(c.id)}
+                    disabled={restoringCardId === c.id}
+                    title="Restaurar card"
+                  >
+                    <RotateCcw size={12} />
+                    {restoringCardId === c.id ? '...' : 'Restaurar'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Navegação mobile por colunas ────────────────────────────────── */}
       {columns.length > 1 && (

@@ -20,6 +20,7 @@ class BoardService {
   async listByUser(userId) {
     const boards = await prisma.board.findMany({
       where: {
+        archivedAt: null,
         OR: [
           { ownerId: userId },
           { members: { some: { userId } } },
@@ -111,6 +112,7 @@ class BoardService {
           orderBy: { position: 'asc' },
           include: {
             cards: {
+              where: { archivedAt: null },
               orderBy: { position: 'asc' },
               include: {
                 creator: {
@@ -271,6 +273,68 @@ class BoardService {
     });
 
     return { removed: true };
+  }
+
+  /**
+   * Arquivar board
+   */
+  async archive(boardId, userId) {
+    await this._checkAccess(boardId, userId, ['admin']);
+    return prisma.board.update({ where: { id: boardId }, data: { archivedAt: new Date() } });
+  }
+
+  /**
+   * Restaurar board arquivado
+   */
+  async unarchive(boardId, userId) {
+    const board = await prisma.board.findUnique({ where: { id: boardId } });
+    if (!board) throw ApiError.notFound('Board não encontrado', 'BOARD_NOT_FOUND');
+
+    const member = await prisma.boardMember.findUnique({
+      where: { boardId_userId: { boardId, userId } },
+    });
+    if (!member || member.role !== 'admin') {
+      throw ApiError.forbidden('Apenas administradores podem restaurar boards', 'INSUFFICIENT_PERMISSIONS');
+    }
+
+    return prisma.board.update({ where: { id: boardId }, data: { archivedAt: null } });
+  }
+
+  /**
+   * Listar boards arquivados do usuário
+   */
+  async listArchivedByUser(userId) {
+    return prisma.board.findMany({
+      where: {
+        archivedAt: { not: null },
+        OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+      },
+      include: {
+        owner: { select: { id: true, name: true, email: true } },
+        _count: { select: { columns: true } },
+      },
+      orderBy: { archivedAt: 'desc' },
+    });
+  }
+
+  /**
+   * Listar cards arquivados de um board
+   */
+  async listArchivedCards(boardId, userId) {
+    await this._checkAccess(boardId, userId);
+
+    return prisma.card.findMany({
+      where: {
+        column: { boardId },
+        archivedAt: { not: null },
+      },
+      include: {
+        creator: { select: { id: true, name: true, email: true } },
+        column: { select: { id: true, name: true } },
+        labels: { include: { label: true } },
+      },
+      orderBy: { archivedAt: 'desc' },
+    });
   }
 
   /**

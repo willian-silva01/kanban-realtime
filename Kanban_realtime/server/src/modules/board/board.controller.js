@@ -96,4 +96,36 @@ const removeMember = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { list, create, getById, update, remove, addMember, removeMember };
+/**
+ * POST /api/boards/:id/archive
+ */
+const archive = asyncHandler(async (req, res) => {
+  const board = await boardService.archive(req.params.id, req.user.id);
+  res.status(200).json({ success: true, data: board, message: 'Board arquivado com sucesso' });
+});
+
+/**
+ * POST /api/boards/:id/unarchive
+ */
+const unarchive = asyncHandler(async (req, res) => {
+  const board = await boardService.unarchive(req.params.id, req.user.id);
+  res.status(200).json({ success: true, data: board, message: 'Board restaurado com sucesso' });
+});
+
+/**
+ * GET /api/boards/archived
+ */
+const listArchived = asyncHandler(async (req, res) => {
+  const boards = await boardService.listArchivedByUser(req.user.id);
+  res.status(200).json({ success: true, data: boards });
+});
+
+/**
+ * GET /api/boards/:id/archived-cards
+ */
+const listArchivedCards = asyncHandler(async (req, res) => {
+  const cards = await boardService.listArchivedCards(req.params.id, req.user.id);
+  res.status(200).json({ success: true, data: cards });
+});
+
+module.exports = { list, create, getById, update, remove, addMember, removeMember, archive, unarchive, listArchived, listArchivedCards };

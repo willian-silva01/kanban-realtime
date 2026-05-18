@@ -19,5 +19,7 @@ cardsRouter.get('/:id', cardController.getById);
 cardsRouter.put('/:id', cardController.update);
 cardsRouter.delete('/:id', cardController.remove);
 cardsRouter.patch('/:id/move', cardController.move);
+cardsRouter.post('/:id/archive', cardController.archive);
+cardsRouter.post('/:id/unarchive', cardController.unarchive);
 
 module.exports = { columnCardsRouter, cardsRouter };

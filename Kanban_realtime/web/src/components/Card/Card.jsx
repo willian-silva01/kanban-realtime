@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useBoardStore } from '../../stores/boardStore';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare, Archive } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
@@ -73,9 +73,11 @@ export default function Card({
   const [checklistEditorOpen, setChecklistEditorOpen] = useState(false);
   const [savingDueDate, setSavingDueDate] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   const escapeSeq = useBoardStore((s) => s.escapeSeq);
   const openCommentsPanelSeq = useBoardStore((s) => s.openCommentsPanelSeq);
+  const archiveCard = useBoardStore((s) => s.archiveCard);
   const cardDomRef = useRef(null);
   const commentsToggleRef = useRef(null);
 
@@ -196,6 +198,21 @@ export default function Card({
     setChecklistEditorOpen((v) => !v);
   };
 
+  const handleArchive = async (e) => {
+    e.stopPropagation();
+    if (archiving) return;
+    setArchiving(true);
+    try {
+      await api.post(`/cards/${card.id}/archive`);
+      archiveCard(card.id);
+      socket?.emit('card:archive', { boardId, cardId: card.id });
+    } catch (err) {
+      console.error('Erro ao arquivar card', err);
+    } finally {
+      setArchiving(false);
+    }
+  };
+
   return (
     <div ref={mergedRef} style={style} className={classNames} {...attributes} {...listeners}>
       {isPending && (
@@ -307,6 +324,14 @@ export default function Card({
             title="Checklists"
           >
             <CheckSquare size={12} />
+          </button>
+          <button
+            className="card-label-btn card-archive-btn"
+            onClick={handleArchive}
+            title="Arquivar card"
+            disabled={archiving}
+          >
+            <Archive size={12} />
           </button>
         </div>
       )}
