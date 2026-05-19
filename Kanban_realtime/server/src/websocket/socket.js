@@ -11,10 +11,9 @@ let io;
 async function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      // TODO: restringir para domínios específicos em produção
-      // origin: process.env.FRONTEND_URL || 'http://localhost:5173'
-      origin: '*',
+      origin: env.FRONTEND_URL || (env.isDev ? 'http://localhost:5173' : ''),
       methods: ['GET', 'POST'],
+      credentials: true,
     },
     // Melhoria de performance: comprime payloads > 1kb
     perMessageDeflate: {
