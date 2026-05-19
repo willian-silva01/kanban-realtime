@@ -1,5 +1,6 @@
 const logger = require('../../utils/logger');
 const presenceService = require('../services/presence.service');
+const activityService = require('../../modules/activity/activity.service');
 
 module.exports = (io, socket) => {
   const userId = socket.user.id;
@@ -86,8 +87,12 @@ module.exports = (io, socket) => {
     socket.to(`board_${boardId}`).emit('card:description:updated', { cardId, description });
   });
 
-  socket.on('card:archive', ({ boardId, cardId }) => {
+  socket.on('card:archive', async ({ boardId, cardId }) => {
     socket.to(`board_${boardId}`).emit('card:archived', { cardId });
+    try {
+      const log = await activityService.log(boardId, userId, 'CARD_ARCHIVED', { cardId });
+      io.to(`board_${boardId}`).emit('activity:new', { type: log.action, user: log.user, metadata: log.metadata, createdAt: log.createdAt });
+    } catch (e) { logger.warn(`[Socket] activity log falhou card:archive — ${e.message}`); }
   });
 
   socket.on('card:unarchive', ({ boardId, card }) => {
@@ -114,8 +119,12 @@ module.exports = (io, socket) => {
 
   // ─── ASSIGNEES ───────────────────────────────────────────────────────────
 
-  socket.on('card:assignee:added', ({ boardId, cardId, assignee }) => {
+  socket.on('card:assignee:added', async ({ boardId, cardId, assignee }) => {
     socket.to(`board_${boardId}`).emit('card:assignee:added', { cardId, assignee });
+    try {
+      const log = await activityService.log(boardId, userId, 'CARD_ASSIGNEE_ADDED', { cardId, assigneeName: assignee?.name });
+      io.to(`board_${boardId}`).emit('activity:new', { type: log.action, user: log.user, metadata: log.metadata, createdAt: log.createdAt });
+    } catch (e) { logger.warn(`[Socket] activity log falhou card:assignee:added — ${e.message}`); }
   });
 
   socket.on('card:assignee:removed', ({ boardId, cardId, userId: assigneeUserId }) => {
@@ -162,8 +171,12 @@ module.exports = (io, socket) => {
     socket.to(`board_${boardId}`).emit('checklist:item:added', { cardId, checklistId, item });
   });
 
-  socket.on('checklist:item:toggled', ({ boardId, cardId, checklistId, itemId, completed }) => {
+  socket.on('checklist:item:toggled', async ({ boardId, cardId, checklistId, itemId, completed }) => {
     socket.to(`board_${boardId}`).emit('checklist:item:toggled', { cardId, checklistId, itemId, completed });
+    try {
+      const log = await activityService.log(boardId, userId, 'CHECKLIST_ITEM_TOGGLED', { cardId, itemId, completed });
+      io.to(`board_${boardId}`).emit('activity:new', { type: log.action, user: log.user, metadata: log.metadata, createdAt: log.createdAt });
+    } catch (e) { logger.warn(`[Socket] activity log falhou checklist:item:toggled — ${e.message}`); }
   });
 
   socket.on('checklist:item:updated', ({ boardId, cardId, checklistId, itemId, text }) => {

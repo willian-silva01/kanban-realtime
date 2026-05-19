@@ -52,8 +52,8 @@ export default function ActivityPanel({ socket, boardId }) {
       setActivities((prev) => [newAct, ...prev]);
     };
 
-    socket.on('activity:create', handleNewActivity);
-    return () => socket.off('activity:create', handleNewActivity);
+    socket.on('activity:new', handleNewActivity);
+    return () => socket.off('activity:new', handleNewActivity);
   }, [socket]);
 
   // ─── Renderiza o texto da atividade ─────────────────────────────────────
@@ -75,6 +75,30 @@ export default function ActivityPanel({ socket, boardId }) {
         return (
           <span>
             <b>{act.user?.name}</b> criou a coluna.
+          </span>
+        );
+      case 'CARD_ARCHIVED':
+        return (
+          <span>
+            <b>{act.user?.name}</b> arquivou um card.
+          </span>
+        );
+      case 'CARD_ASSIGNEE_ADDED':
+        return (
+          <span>
+            <b>{act.user?.name}</b> atribuiu{act.metadata?.assigneeName ? ` ${act.metadata.assigneeName}` : ''} a um card.
+          </span>
+        );
+      case 'CHECKLIST_ITEM_TOGGLED':
+        return (
+          <span>
+            <b>{act.user?.name}</b> {act.metadata?.completed ? 'completou' : 'desmarcou'} um item de checklist.
+          </span>
+        );
+      case 'COMMENT_CREATED':
+        return (
+          <span>
+            <b>{act.user?.name}</b> comentou em "{act.metadata?.cardTitle}".
           </span>
         );
       default:

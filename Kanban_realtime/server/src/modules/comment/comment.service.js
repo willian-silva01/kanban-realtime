@@ -71,7 +71,7 @@ class CommentService {
       const room = `board_${card.column.boardId}`;
 
       // Emitir Activity
-      io.to(room).emit('activity:create', {
+      io.to(room).emit('activity:new', {
         type: log.action, user: log.user, metadata: log.metadata, createdAt: log.createdAt
       });
 

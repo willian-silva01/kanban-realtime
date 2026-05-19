@@ -12,7 +12,7 @@ const emitActivity = (boardId, log) => {
   try {
     const { getIo } = require('../../websocket/socket');
     const io = getIo();
-    io.to(`board_${boardId}`).emit('activity:create', {
+    io.to(`board_${boardId}`).emit('activity:new', {
 
       type: log.action,
       user: log.user,
