@@ -73,6 +73,7 @@ export default function Board({ socket, boardId, user }) {
     addColumn,
     updateColumn,
     removeColumn,
+    reorderColumns,
     addCard,
     removeCard,
     updateCard,
@@ -371,6 +372,7 @@ export default function Board({ socket, boardId, user }) {
     const onColumnCreate = (column) => addColumn(column);
     const onColumnUpdate = (column) => updateColumn(column);
     const onColumnDeleted = ({ columnId }) => removeColumn(columnId);
+    const onColumnReorder = ({ columns: cols }) => reorderColumns(cols);
     const onCardCreate = (card) => addCard(card);
     const onCardUpdate = (card) => updateCard(card);
     const onCardDelete = ({ cardId }) => removeCard(cardId);
@@ -399,6 +401,7 @@ export default function Board({ socket, boardId, user }) {
     socket.on('column:create', onColumnCreate);
     socket.on('column:update', onColumnUpdate);
     socket.on('column:deleted', onColumnDeleted);
+    socket.on('column:reorder', onColumnReorder);
     socket.on('card:create', onCardCreate);
     socket.on('card:update', onCardUpdate);
     socket.on('card:delete', onCardDelete);
@@ -428,6 +431,7 @@ export default function Board({ socket, boardId, user }) {
       socket.off('column:create', onColumnCreate);
       socket.off('column:update', onColumnUpdate);
       socket.off('column:deleted', onColumnDeleted);
+      socket.off('column:reorder', onColumnReorder);
       socket.off('card:create', onCardCreate);
       socket.off('card:update', onCardUpdate);
       socket.off('card:delete', onCardDelete);
@@ -496,13 +500,34 @@ export default function Board({ socket, boardId, user }) {
     }
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event) => {
     setActiveCard(null);
     const { active, over } = event;
-    if (!over) return;
+    if (!over || active.id === over.id) return;
+
+    if (active.data.current?.type === 'Column') {
+      const oldIndex = columns.findIndex((c) => c.id === active.id);
+      const newIndex = columns.findIndex((c) => c.id === over.id);
+      if (oldIndex === newIndex) return;
+
+      const reordered = arrayMove(columns, oldIndex, newIndex);
+      reorderColumns(reordered);
+
+      const payload = reordered.map((col, idx) => ({ id: col.id, position: idx }));
+      try {
+        const res = await api.patch(`/boards/${boardId}/columns/reorder`, { columns: payload });
+        const updatedCols = res.data.data.map(({ cards: _c, ...col }) => col);
+        reorderColumns(updatedCols);
+        socket?.emit('column:reorder', { boardId, columns: updatedCols });
+      } catch {
+        reorderColumns(columns);
+      }
+      return;
+    }
 
     const activeId = active.id;
     const activeCardData = cards.find((c) => c.id === activeId);
+    if (!activeCardData) return;
     const colCards = cards.filter((c) => c.columnId === activeCardData.columnId);
     const newPositionIndex = colCards.findIndex((c) => c.id === activeId);
 

@@ -228,6 +228,7 @@ export const useBoardStore = create(
           columns: s.columns.filter((c) => c.id !== columnId),
           cards: s.cards.filter((c) => c.columnId !== columnId),
         })),
+      reorderColumns: (cols) => set(() => ({ columns: cols })),
 
       // Cards (create/delete/update via WS)
       addCard: (card) => set((s) => ({ cards: [...s.cards, card] })),
