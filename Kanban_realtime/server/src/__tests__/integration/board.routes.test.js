@@ -131,3 +131,56 @@ describe('DELETE /api/boards/:id', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('PATCH /api/boards/:boardId/columns/reorder', () => {
+  const COL_ID_1 = 'a0000000-0000-0000-0000-000000000001';
+  const COL_ID_2 = 'a0000000-0000-0000-0000-000000000002';
+
+  it('deve reordenar colunas com permissão admin', async () => {
+    prisma.boardMember.findUnique.mockResolvedValue({ role: 'admin' });
+    prisma.column.update.mockResolvedValue({});
+    prisma.$transaction.mockImplementation((ops) => Promise.all(ops));
+    prisma.column.findMany.mockResolvedValue([
+      { id: COL_ID_2, name: 'Done', position: 0, cards: [] },
+      { id: COL_ID_1, name: 'To Do', position: 1, cards: [] },
+    ]);
+
+    const res = await request(app)
+      .patch('/api/boards/board-1/columns/reorder')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ columns: [{ id: COL_ID_2, position: 0 }, { id: COL_ID_1, position: 1 }] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data[0].id).toBe(COL_ID_2);
+    expect(res.body.data[1].id).toBe(COL_ID_1);
+  });
+
+  it('deve retornar 403 se usuário não é admin', async () => {
+    prisma.boardMember.findUnique.mockResolvedValue({ role: 'viewer' });
+
+    const res = await request(app)
+      .patch('/api/boards/board-1/columns/reorder')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ columns: [{ id: COL_ID_1, position: 0 }] });
+
+    expect(res.status).toBe(403);
+  });
+
+  it('deve retornar 400 para payload vazio', async () => {
+    const res = await request(app)
+      .patch('/api/boards/board-1/columns/reorder')
+      .set('Authorization', `Bearer ${makeToken()}`)
+      .send({ columns: [] });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('deve retornar 401 sem token', async () => {
+    const res = await request(app)
+      .patch('/api/boards/board-1/columns/reorder')
+      .send({ columns: [{ id: COL_ID_1, position: 0 }] });
+
+    expect(res.status).toBe(401);
+  });
+});

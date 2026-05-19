@@ -102,4 +102,38 @@ describe('Board', () => {
     // Sem socket — apenas exibe skeleton sem lançar erro
     expect(screen.queryByTestId('dnd-context')).not.toBeInTheDocument();
   });
+
+  it('registra listener column:reorder ao montar', () => {
+    const socket = makeSocket();
+    render(<Board socket={socket} boardId="board-1" user={USER} />);
+    expect(socket.on).toHaveBeenCalledWith('column:reorder', expect.any(Function));
+  });
+
+  it('reordena colunas ao receber column:reorder via WebSocket', async () => {
+    const socket = makeSocket();
+    render(<Board socket={socket} boardId="board-1" user={USER} />);
+
+    await act(async () => {
+      socket._trigger('board:sync', {
+        columns: [
+          { id: 'col-1', name: 'To Do' },
+          { id: 'col-2', name: 'Done' },
+        ],
+        cards: [],
+      });
+    });
+
+    await act(async () => {
+      socket._trigger('column:reorder', {
+        columns: [
+          { id: 'col-2', name: 'Done', position: 0 },
+          { id: 'col-1', name: 'To Do', position: 1 },
+        ],
+      });
+    });
+
+    const { columns } = useBoardStore.getState();
+    expect(columns[0].id).toBe('col-2');
+    expect(columns[1].id).toBe('col-1');
+  });
 });
