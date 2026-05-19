@@ -67,15 +67,15 @@ module.exports = (io, socket) => {
   });
 
   socket.on('card:create', ({ boardId, card }) => {
-    socket.to(`board_${boardId}`).emit('card:create', card);
+    socket.to(`board_${boardId}`).emit('card:created', { card });
   });
 
   socket.on('card:update', ({ boardId, card }) => {
-    socket.to(`board_${boardId}`).emit('card:update', card);
+    socket.to(`board_${boardId}`).emit('card:updated', { card });
   });
 
-  socket.on('card:delete', ({ boardId, cardId }) => {
-    socket.to(`board_${boardId}`).emit('card:delete', { cardId });
+  socket.on('card:delete', ({ boardId, cardId, columnId }) => {
+    socket.to(`board_${boardId}`).emit('card:deleted', { cardId, columnId });
   });
 
   socket.on('card:duedate:updated', ({ boardId, cardId, dueDate }) => {

@@ -215,3 +215,91 @@
 /* Botão arquivar card */
 .card-archive-btn { color: var(--text-secondary); }
 .card-archive-btn:hover { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }
+
+/* Botão deletar card */
+.card-delete-btn { color: var(--text-secondary); margin-left: auto; }
+.card-delete-btn:hover { color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); }
+
+/* Confirmação de deleção inline */
+.card-delete-text {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex: 1;
+}
+.card-delete-yes {
+  display: flex;
+  align-items: center;
+  padding: 3px 7px;
+  background: #ef4444;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.card-delete-yes:hover:not(:disabled) { opacity: 0.85; }
+.card-delete-yes:disabled { opacity: 0.5; cursor: not-allowed; }
+.card-delete-no {
+  display: flex;
+  align-items: center;
+  padding: 3px 6px;
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  border-radius: 5px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.card-delete-no:hover:not(:disabled) { border-color: #ef4444; color: #ef4444; }
+.card-delete-no:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Edição inline de título */
+.card-title-edit {
+  margin-bottom: 8px;
+}
+.card-title-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--input-bg, rgba(255,255,255,0.05));
+  border: 1px solid rgba(99, 102, 241, 0.6);
+  border-radius: 6px;
+  color: var(--text-primary, #e2e8f0);
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 4px 8px;
+  outline: none;
+  line-height: 1.4;
+}
+.card-title-input:focus { border-color: #6366f1; }
+.card-title-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 5px;
+}
+.card-title-actions button {
+  display: flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+.card-title-actions button:first-child {
+  background: rgba(99, 102, 241, 0.7);
+  border: none;
+  color: #fff;
+}
+.card-title-actions button:first-child:hover:not(:disabled) { background: rgba(99, 102, 241, 0.9); }
+.card-title-actions button:last-child {
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  color: var(--text-secondary);
+}
+.card-title-actions button:last-child:hover:not(:disabled) { border-color: #ef4444; color: #ef4444; }
+.card-title-actions button:disabled { opacity: 0.45; cursor: not-allowed; }

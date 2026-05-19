@@ -43,7 +43,7 @@ export default function Column({
   onDescriptionChange,
   onChecklistChange,
 }) {
-  const { updateColumn, removeColumn } = useBoardStore();
+  const { updateColumn, removeColumn, addCard } = useBoardStore();
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
@@ -53,6 +53,11 @@ export default function Column({
 
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [addingCard, setAddingCard] = useState(false);
+  const [newCardTitle, setNewCardTitle] = useState('');
+  const [addCardLoading, setAddCardLoading] = useState(false);
+  const newCardInputRef = useRef(null);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -67,6 +72,10 @@ export default function Column({
   useEffect(() => {
     if (isRenaming) renameInputRef.current?.focus();
   }, [isRenaming]);
+
+  useEffect(() => {
+    if (addingCard) newCardInputRef.current?.focus();
+  }, [addingCard]);
 
   const trimmedQuery = searchQuery?.trim() ?? '';
   const visibleCount = trimmedQuery
@@ -120,6 +129,44 @@ export default function Column({
       submitRename();
     } else if (e.key === 'Escape') {
       cancelRename();
+    }
+  };
+
+  const startAddCard = () => {
+    setNewCardTitle('');
+    setAddingCard(true);
+  };
+
+  const cancelAddCard = () => {
+    setAddingCard(false);
+    setNewCardTitle('');
+  };
+
+  const submitAddCard = async () => {
+    const trimmed = newCardTitle.trim();
+    if (!trimmed) return;
+    setAddCardLoading(true);
+    try {
+      const res = await api.post(`/columns/${column.id}/cards`, { title: trimmed });
+      const card = res.data.data;
+      const normalized = { ...card, labels: [], assignees: [], checklists: [] };
+      addCard(normalized);
+      socket?.emit('card:create', { boardId, card: normalized });
+      setNewCardTitle('');
+      setAddingCard(false);
+    } catch (err) {
+      console.error('Erro ao criar card', err);
+    } finally {
+      setAddCardLoading(false);
+    }
+  };
+
+  const handleAddCardKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitAddCard();
+    } else if (e.key === 'Escape') {
+      cancelAddCard();
     }
   };
 
@@ -249,13 +296,46 @@ export default function Column({
         </SortableContext>
       </div>
 
-      <button
-        className="new-card-btn"
-        data-add-card-col={column.id}
-        onClick={() => alert('Adicionar card na API...')}
-      >
-        <Plus size={16} /> Add Card
-      </button>
+      {addingCard ? (
+        <div className="new-card-form" onPointerDown={(e) => e.stopPropagation()}>
+          <input
+            ref={newCardInputRef}
+            className="new-card-input"
+            placeholder="Título do card..."
+            value={newCardTitle}
+            onChange={(e) => setNewCardTitle(e.target.value)}
+            onKeyDown={handleAddCardKeyDown}
+            disabled={addCardLoading}
+            maxLength={100}
+          />
+          <div className="new-card-actions">
+            <button
+              className="new-card-confirm"
+              onClick={submitAddCard}
+              disabled={addCardLoading || !newCardTitle.trim()}
+              title="Adicionar (Enter)"
+            >
+              {addCardLoading ? '...' : <Check size={12} />}
+            </button>
+            <button
+              className="new-card-cancel"
+              onClick={cancelAddCard}
+              disabled={addCardLoading}
+              title="Cancelar (Esc)"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          className="new-card-btn"
+          data-add-card-col={column.id}
+          onClick={startAddCard}
+        >
+          <Plus size={16} /> Add Card
+        </button>
+      )}
     </div>
   );
 }

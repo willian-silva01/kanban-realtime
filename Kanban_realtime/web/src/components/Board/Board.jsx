@@ -373,9 +373,9 @@ export default function Board({ socket, boardId, user }) {
     const onColumnUpdate = (column) => updateColumn(column);
     const onColumnDeleted = ({ columnId }) => removeColumn(columnId);
     const onColumnReorder = ({ columns: cols }) => reorderColumns(cols);
-    const onCardCreate = (card) => addCard(card);
-    const onCardUpdate = (card) => updateCard(card);
-    const onCardDelete = ({ cardId }) => removeCard(cardId);
+    const onCardCreated = ({ card }) => addCard(card);
+    const onCardUpdated = ({ card }) => updateCard(card);
+    const onCardDeleted = ({ cardId }) => removeCard(cardId);
 
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
@@ -402,9 +402,9 @@ export default function Board({ socket, boardId, user }) {
     socket.on('column:update', onColumnUpdate);
     socket.on('column:deleted', onColumnDeleted);
     socket.on('column:reorder', onColumnReorder);
-    socket.on('card:create', onCardCreate);
-    socket.on('card:update', onCardUpdate);
-    socket.on('card:delete', onCardDelete);
+    socket.on('card:created', onCardCreated);
+    socket.on('card:updated', onCardUpdated);
+    socket.on('card:deleted', onCardDeleted);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -432,9 +432,9 @@ export default function Board({ socket, boardId, user }) {
       socket.off('column:update', onColumnUpdate);
       socket.off('column:deleted', onColumnDeleted);
       socket.off('column:reorder', onColumnReorder);
-      socket.off('card:create', onCardCreate);
-      socket.off('card:update', onCardUpdate);
-      socket.off('card:delete', onCardDelete);
+      socket.off('card:created', onCardCreated);
+      socket.off('card:updated', onCardUpdated);
+      socket.off('card:deleted', onCardDeleted);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps

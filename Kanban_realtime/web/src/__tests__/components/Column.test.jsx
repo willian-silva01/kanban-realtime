@@ -31,14 +31,16 @@ vi.mock('lucide-react', () => ({
 
 const mockUpdateColumn = vi.fn();
 const mockRemoveColumn = vi.fn();
+const mockAddCard = vi.fn();
 vi.mock('../../stores/boardStore', () => ({
-  useBoardStore: () => ({ updateColumn: mockUpdateColumn, removeColumn: mockRemoveColumn }),
+  useBoardStore: () => ({ updateColumn: mockUpdateColumn, removeColumn: mockRemoveColumn, addCard: mockAddCard }),
 }));
 
 vi.mock('../../services/api', () => ({
   default: {
     put: vi.fn(),
     delete: vi.fn(),
+    post: vi.fn(),
   },
 }));
 

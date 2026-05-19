@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useBoardStore } from '../../stores/boardStore';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare, Archive } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare, Archive, Trash2, Check, X } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
@@ -74,12 +74,20 @@ export default function Card({
   const [savingDueDate, setSavingDueDate] = useState(false);
   const [savingDescription, setSavingDescription] = useState(false);
   const [archiving, setArchiving] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState('');
+  const [savingTitle, setSavingTitle] = useState(false);
 
   const escapeSeq = useBoardStore((s) => s.escapeSeq);
   const openCommentsPanelSeq = useBoardStore((s) => s.openCommentsPanelSeq);
   const archiveCard = useBoardStore((s) => s.archiveCard);
+  const removeCard = useBoardStore((s) => s.removeCard);
+  const updateCard = useBoardStore((s) => s.updateCard);
   const cardDomRef = useRef(null);
   const commentsToggleRef = useRef(null);
+  const titleInputRef = useRef(null);
 
   // Fechar todos os painéis quando Esc é pressionado globalmente
   useEffect(() => {
@@ -89,7 +97,13 @@ export default function Card({
     setDueDatePickerOpen(false);
     setDescEditorOpen(false);
     setChecklistEditorOpen(false);
+    setIsConfirmingDelete(false);
+    setIsEditingTitle(false);
   }, [escapeSeq]);
+
+  useEffect(() => {
+    if (isEditingTitle) titleInputRef.current?.focus();
+  }, [isEditingTitle]);
 
   // Abrir/fechar CommentsPanel via atalho Enter
   useEffect(() => {
@@ -198,6 +212,60 @@ export default function Card({
     setChecklistEditorOpen((v) => !v);
   };
 
+  const startEditTitle = () => {
+    setTitleValue(card.title);
+    setIsEditingTitle(true);
+  };
+
+  const cancelEditTitle = () => {
+    setIsEditingTitle(false);
+  };
+
+  const submitEditTitle = async () => {
+    const trimmed = titleValue.trim();
+    if (!trimmed || trimmed === card.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+    setSavingTitle(true);
+    try {
+      const res = await api.put(`/cards/${card.id}`, { title: trimmed });
+      const updated = res.data.data;
+      updateCard(updated);
+      socket?.emit('card:update', { boardId, card: updated });
+      setIsEditingTitle(false);
+    } catch (err) {
+      console.error('Erro ao renomear card', err);
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitEditTitle();
+    } else if (e.key === 'Escape') {
+      cancelEditTitle();
+    }
+  };
+
+  const handleDeleteConfirm = async (e) => {
+    e.stopPropagation();
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/cards/${card.id}`);
+      removeCard(card.id);
+      socket?.emit('card:delete', { boardId, cardId: card.id, columnId: card.columnId });
+    } catch (err) {
+      console.error('Erro ao deletar card', err);
+      setIsConfirmingDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleArchive = async (e) => {
     e.stopPropagation();
     if (archiving) return;
@@ -236,7 +304,47 @@ export default function Card({
         </div>
       )}
 
-      <div className="card-title">{card.title}</div>
+      {isEditingTitle && !isOverlay ? (
+        <div
+          className="card-title-edit"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            ref={titleInputRef}
+            className="card-title-input"
+            value={titleValue}
+            onChange={(e) => setTitleValue(e.target.value)}
+            onKeyDown={handleTitleKeyDown}
+            disabled={savingTitle}
+            maxLength={100}
+          />
+          <div className="card-title-actions">
+            <button
+              onClick={submitEditTitle}
+              disabled={savingTitle || !titleValue.trim()}
+              title="Salvar (Enter)"
+            >
+              <Check size={10} />
+            </button>
+            <button
+              onClick={cancelEditTitle}
+              disabled={savingTitle}
+              title="Cancelar (Esc)"
+            >
+              <X size={10} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="card-title"
+          onDoubleClick={!isOverlay ? startEditTitle : undefined}
+          title={!isOverlay ? 'Duplo clique para renomear' : undefined}
+        >
+          {card.title}
+        </div>
+      )}
       {card.description && !descEditorOpen && (
         <div
           className="card-desc card-desc--md"
@@ -290,49 +398,80 @@ export default function Card({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            className={`card-label-btn ${pickerOpen ? 'active' : ''}`}
-            onClick={togglePicker}
-            title="Gerenciar labels"
-          >
-            <Tag size={12} />
-          </button>
-          <button
-            className={`card-label-btn ${assigneePickerOpen ? 'active' : ''}`}
-            onClick={toggleAssigneePicker}
-            title="Atribuir membros"
-          >
-            <Users size={12} />
-          </button>
-          <button
-            className={`card-label-btn ${dueDatePickerOpen ? 'active' : ''}`}
-            onClick={openDueDatePicker}
-            title="Definir prazo"
-          >
-            <Calendar size={12} />
-          </button>
-          <button
-            className={`card-label-btn ${descEditorOpen ? 'active' : ''}`}
-            onClick={toggleDescEditor}
-            title="Editar descrição"
-          >
-            <FileText size={12} />
-          </button>
-          <button
-            className={`card-label-btn ${checklistEditorOpen ? 'active' : ''}`}
-            onClick={toggleChecklistEditor}
-            title="Checklists"
-          >
-            <CheckSquare size={12} />
-          </button>
-          <button
-            className="card-label-btn card-archive-btn"
-            onClick={handleArchive}
-            title="Arquivar card"
-            disabled={archiving}
-          >
-            <Archive size={12} />
-          </button>
+          {isConfirmingDelete ? (
+            <>
+              <span className="card-delete-text">Deletar?</span>
+              <button
+                className="card-delete-yes"
+                onClick={handleDeleteConfirm}
+                disabled={deleting}
+                title="Confirmar deleção"
+              >
+                {deleting ? '...' : <Check size={10} />}
+              </button>
+              <button
+                className="card-delete-no"
+                onClick={() => setIsConfirmingDelete(false)}
+                disabled={deleting}
+                title="Cancelar"
+              >
+                <X size={10} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className={`card-label-btn ${pickerOpen ? 'active' : ''}`}
+                onClick={togglePicker}
+                title="Gerenciar labels"
+              >
+                <Tag size={12} />
+              </button>
+              <button
+                className={`card-label-btn ${assigneePickerOpen ? 'active' : ''}`}
+                onClick={toggleAssigneePicker}
+                title="Atribuir membros"
+              >
+                <Users size={12} />
+              </button>
+              <button
+                className={`card-label-btn ${dueDatePickerOpen ? 'active' : ''}`}
+                onClick={openDueDatePicker}
+                title="Definir prazo"
+              >
+                <Calendar size={12} />
+              </button>
+              <button
+                className={`card-label-btn ${descEditorOpen ? 'active' : ''}`}
+                onClick={toggleDescEditor}
+                title="Editar descrição"
+              >
+                <FileText size={12} />
+              </button>
+              <button
+                className={`card-label-btn ${checklistEditorOpen ? 'active' : ''}`}
+                onClick={toggleChecklistEditor}
+                title="Checklists"
+              >
+                <CheckSquare size={12} />
+              </button>
+              <button
+                className="card-label-btn card-archive-btn"
+                onClick={handleArchive}
+                title="Arquivar card"
+                disabled={archiving}
+              >
+                <Archive size={12} />
+              </button>
+              <button
+                className="card-label-btn card-delete-btn"
+                onClick={() => setIsConfirmingDelete(true)}
+                title="Deletar card"
+              >
+                <Trash2 size={12} />
+              </button>
+            </>
+          )}
         </div>
       )}
 
