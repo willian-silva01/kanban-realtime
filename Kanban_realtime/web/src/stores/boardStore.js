@@ -20,6 +20,7 @@ export const useBoardStore = create(
       focusedCardId: null,
       escapeSeq: 0,
       openCommentsPanelSeq: { cardId: null, seq: 0 },
+      editingCards: {},
 
       // Board sync
       setBoardSync: ({ boardName, columns, cards, boardLabels, boardMembers }) =>
@@ -49,6 +50,14 @@ export const useBoardStore = create(
       incrementEscapeSeq: () => set((s) => ({ escapeSeq: s.escapeSeq + 1 })),
       triggerCommentsPanel: (cardId) =>
         set((s) => ({ openCommentsPanelSeq: { cardId, seq: s.openCommentsPanelSeq.seq + 1 } })),
+
+      setCardEditing: (cardId, user) =>
+        set((s) => ({ editingCards: { ...s.editingCards, [cardId]: user } })),
+      clearCardEditing: (cardId) =>
+        set((s) => {
+          const { [cardId]: _, ...rest } = s.editingCards;
+          return { editingCards: rest };
+        }),
 
       // Cards — supports functional updaters for DnD handlers
       setCards: (updaterOrCards) =>
@@ -277,6 +286,7 @@ export const useBoardStore = create(
           focusedCardId: null,
           escapeSeq: 0,
           openCommentsPanelSeq: { cardId: null, seq: 0 },
+          editingCards: {},
         }),
     }),
     { name: 'BoardStore', enabled: import.meta.env.DEV }

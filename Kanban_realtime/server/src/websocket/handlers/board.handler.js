@@ -4,6 +4,7 @@ const activityService = require('../../modules/activity/activity.service');
 
 module.exports = (io, socket) => {
   const userId = socket.user.id;
+  const editingTimers = new Map(); // cardId → { boardId, timer }
 
   // ─── ENTRAR E SAIR NO BOARD (ROOMS) ─────────────────────────────────────
 
@@ -191,6 +192,28 @@ module.exports = (io, socket) => {
     socket.to(`board_${boardId}`).emit('checklist:items:reordered', { cardId, checklistId, items });
   });
 
+  // ─── EDITING INDICATORS ─────────────────────────────────────────────────
+
+  socket.on('card:editing:start', ({ boardId, cardId, userName }) => {
+    if (editingTimers.has(cardId)) {
+      clearTimeout(editingTimers.get(cardId).timer);
+    }
+    socket.to(`board_${boardId}`).emit('card:editing:started', { cardId, user: { id: userId, name: userName } });
+    const timer = setTimeout(() => {
+      editingTimers.delete(cardId);
+      io.to(`board_${boardId}`).emit('card:editing:stopped', { cardId, userId });
+    }, 5000);
+    editingTimers.set(cardId, { boardId, timer });
+  });
+
+  socket.on('card:editing:stop', ({ boardId, cardId }) => {
+    if (editingTimers.has(cardId)) {
+      clearTimeout(editingTimers.get(cardId).timer);
+      editingTimers.delete(cardId);
+    }
+    socket.to(`board_${boardId}`).emit('card:editing:stopped', { cardId, userId });
+  });
+
   // ─── CURSORES COOPERATIVOS ───────────────────────────────────────────────
 
   socket.on('cursor:move', ({ boardId, x, y, name }) => {
@@ -225,13 +248,19 @@ module.exports = (io, socket) => {
 
   socket.on('disconnect', async (reason) => {
     logger.debug(`[Socket] disconnect — user=${userId} reason=${reason}`);
-    
+
+    for (const [cardId, { boardId: timerBoardId, timer }] of editingTimers) {
+      clearTimeout(timer);
+      io.to(`board_${timerBoardId}`).emit('card:editing:stopped', { cardId, userId });
+    }
+    editingTimers.clear();
+
     const boardId = socket.currentBoardId;
     if (boardId) {
       // Async Cleanup State Layer
       const currentUsers = await presenceService.removeUser(boardId, userId);
       io.to(`board_${boardId}`).emit('presence:update', currentUsers);
-      
+
       // Expurgar visualmente o último SVG Render
       io.to(`board_${boardId}`).emit('cursor:remove', { userId });
     }

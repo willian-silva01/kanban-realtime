@@ -77,6 +77,8 @@ export default function Board({ socket, boardId, user }) {
     addCard,
     removeCard,
     updateCard,
+    setCardEditing,
+    clearCardEditing,
   } = useBoardStore();
 
   const offlineQueueRef = useRef([]);
@@ -376,6 +378,8 @@ export default function Board({ socket, boardId, user }) {
     const onCardCreated = ({ card }) => addCard(card);
     const onCardUpdated = ({ card }) => updateCard(card);
     const onCardDeleted = ({ cardId }) => removeCard(cardId);
+    const onCardEditingStarted = ({ cardId, user }) => setCardEditing(cardId, user);
+    const onCardEditingStopped = ({ cardId }) => clearCardEditing(cardId);
 
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
@@ -405,6 +409,8 @@ export default function Board({ socket, boardId, user }) {
     socket.on('card:created', onCardCreated);
     socket.on('card:updated', onCardUpdated);
     socket.on('card:deleted', onCardDeleted);
+    socket.on('card:editing:started', onCardEditingStarted);
+    socket.on('card:editing:stopped', onCardEditingStopped);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -435,6 +441,8 @@ export default function Board({ socket, boardId, user }) {
       socket.off('card:created', onCardCreated);
       socket.off('card:updated', onCardUpdated);
       socket.off('card:deleted', onCardDeleted);
+      socket.off('card:editing:started', onCardEditingStarted);
+      socket.off('card:editing:stopped', onCardEditingStopped);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps

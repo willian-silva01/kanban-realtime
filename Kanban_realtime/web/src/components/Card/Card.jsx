@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { useBoardStore } from '../../stores/boardStore';
 import { CSS } from '@dnd-kit/utilities';
-import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare, Archive, Trash2, Check, X } from 'lucide-react';
+import { Tag, Calendar, Users, RefreshCw, FileText, CheckSquare, Archive, Trash2, Check, X, Pencil } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import CommentsPanel from '../CommentsPanel/CommentsPanel';
@@ -10,6 +10,7 @@ import LabelPicker from '../LabelPicker/LabelPicker';
 import AssigneePicker from '../AssigneePicker/AssigneePicker';
 import MarkdownEditor from '../MarkdownEditor/MarkdownEditor';
 import ChecklistEditor from '../ChecklistEditor/ChecklistEditor';
+import { useAuthStore } from '../../stores/authStore';
 import api from '../../services/api';
 import './Card.css';
 import '../AssigneePicker/AssigneePicker.css';
@@ -82,12 +83,15 @@ export default function Card({
 
   const escapeSeq = useBoardStore((s) => s.escapeSeq);
   const openCommentsPanelSeq = useBoardStore((s) => s.openCommentsPanelSeq);
+  const editingCards = useBoardStore((s) => s.editingCards);
   const archiveCard = useBoardStore((s) => s.archiveCard);
   const removeCard = useBoardStore((s) => s.removeCard);
   const updateCard = useBoardStore((s) => s.updateCard);
+  const currentUser = useAuthStore((s) => s.user);
   const cardDomRef = useRef(null);
   const commentsToggleRef = useRef(null);
   const titleInputRef = useRef(null);
+  const wasEditingRef = useRef(false);
 
   // Fechar todos os painéis quando Esc é pressionado globalmente
   useEffect(() => {
@@ -118,6 +122,20 @@ export default function Card({
       cardDomRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
   }, [isFocused]);
+
+  // Emitir indicador de edição para outros clientes
+  const isAnyPanelOpen =
+    isEditingTitle || descEditorOpen || dueDatePickerOpen || checklistEditorOpen || pickerOpen || assigneePickerOpen;
+  useEffect(() => {
+    if (isOverlay || !socket || !boardId) return;
+    if (isAnyPanelOpen) {
+      wasEditingRef.current = true;
+      socket.emit('card:editing:start', { boardId, cardId: card.id, userName: currentUser?.name ?? '' });
+    } else if (wasEditingRef.current) {
+      wasEditingRef.current = false;
+      socket.emit('card:editing:stop', { boardId, cardId: card.id });
+    }
+  }, [isAnyPanelOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -303,6 +321,20 @@ export default function Card({
           ))}
         </div>
       )}
+
+      {/* Editing indicator (shown to other clients only) */}
+      {!isOverlay && (() => {
+        const editorUser = editingCards[card.id];
+        if (!editorUser || editorUser.id === currentUser?.id) return null;
+        const firstName = editorUser.name?.split(' ')[0] ?? editorUser.name;
+        return (
+          <div className="card-editing-indicator" onPointerDown={(e) => e.stopPropagation()}>
+            <Pencil size={9} />
+            <span className="card-editing-name" title={editorUser.name}>{firstName}</span>
+            &nbsp;está editando
+          </div>
+        );
+      })()}
 
       {isEditingTitle && !isOverlay ? (
         <div
