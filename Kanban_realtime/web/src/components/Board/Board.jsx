@@ -709,6 +709,7 @@ export default function Board({ socket, boardId, user }) {
                 searchQuery={searchQuery}
                 pendingCardIds={pendingCardIds}
                 focusedCardId={focusedCardId}
+                canDelete={canManageColumns}
                 onCardLabelChange={handleCardLabelChange}
                 onBoardLabelChange={handleBoardLabelChange}
                 onDueDateChange={handleDueDateChange}

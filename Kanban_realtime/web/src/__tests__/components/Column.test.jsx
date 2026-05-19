@@ -26,16 +26,19 @@ vi.mock('lucide-react', () => ({
   Plus: () => <span>+</span>,
   Check: () => <span>✓</span>,
   X: () => <span>✕</span>,
+  Trash2: () => <span>🗑</span>,
 }));
 
 const mockUpdateColumn = vi.fn();
+const mockRemoveColumn = vi.fn();
 vi.mock('../../stores/boardStore', () => ({
-  useBoardStore: () => ({ updateColumn: mockUpdateColumn }),
+  useBoardStore: () => ({ updateColumn: mockUpdateColumn, removeColumn: mockRemoveColumn }),
 }));
 
 vi.mock('../../services/api', () => ({
   default: {
     put: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -119,5 +122,51 @@ describe('Column', () => {
 
     expect(screen.getByText('Nome não pode ser vazio')).toBeInTheDocument();
     expect(api.put).not.toHaveBeenCalled();
+  });
+
+  it('não exibe botão de delete sem permissão', () => {
+    render(<Column column={COLUMN} cards={[]} socket={null} boardId="board-1" canDelete={false} />);
+    expect(screen.queryByTestId('column-delete-btn')).not.toBeInTheDocument();
+  });
+
+  it('exibe botão de delete com permissão', () => {
+    render(<Column column={COLUMN} cards={[]} socket={null} boardId="board-1" canDelete={true} />);
+    expect(screen.getByTestId('column-delete-btn')).toBeInTheDocument();
+  });
+
+  it('abre confirmação ao clicar no botão de delete', () => {
+    render(<Column column={COLUMN} cards={[]} socket={null} boardId="board-1" canDelete={true} />);
+    fireEvent.click(screen.getByTestId('column-delete-btn'));
+    expect(screen.getByTestId('column-delete-confirm')).toBeInTheDocument();
+    expect(screen.getByTestId('column-delete-cancel')).toBeInTheDocument();
+    expect(screen.getByText('Deletar coluna?')).toBeInTheDocument();
+  });
+
+  it('cancela delete ao clicar em Não', () => {
+    render(<Column column={COLUMN} cards={[]} socket={null} boardId="board-1" canDelete={true} />);
+    fireEvent.click(screen.getByTestId('column-delete-btn'));
+    fireEvent.click(screen.getByTestId('column-delete-cancel'));
+    expect(screen.queryByTestId('column-delete-confirm')).not.toBeInTheDocument();
+    expect(screen.getByTestId('column-title')).toBeInTheDocument();
+  });
+
+  it('deleta coluna ao confirmar com Sim', async () => {
+    api.delete.mockResolvedValue({});
+    const mockSocket = { emit: vi.fn() };
+
+    render(
+      <Column column={COLUMN} cards={[]} socket={mockSocket} boardId="board-1" canDelete={true} />
+    );
+    fireEvent.click(screen.getByTestId('column-delete-btn'));
+    fireEvent.click(screen.getByTestId('column-delete-confirm'));
+
+    await waitFor(() => {
+      expect(api.delete).toHaveBeenCalledWith('/boards/board-1/columns/col-1');
+      expect(mockRemoveColumn).toHaveBeenCalledWith('col-1');
+      expect(mockSocket.emit).toHaveBeenCalledWith('column:delete', {
+        boardId: 'board-1',
+        columnId: 'col-1',
+      });
+    });
   });
 });

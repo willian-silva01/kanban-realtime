@@ -39,6 +39,79 @@
   flex-shrink: 0;
   margin-left: 6px;
 }
+.column-delete-btn {
+  display: flex;
+  align-items: center;
+  padding: 3px 5px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+.column-header:hover .column-delete-btn {
+  opacity: 1;
+}
+.column-delete-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+.column-confirm-delete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex: 1;
+}
+.column-confirm-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #94a3b8);
+  white-space: nowrap;
+}
+.column-confirm-actions {
+  display: flex;
+  gap: 4px;
+}
+.column-confirm-yes {
+  padding: 3px 10px;
+  background: #ef4444;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.column-confirm-yes:hover:not(:disabled) {
+  opacity: 0.85;
+}
+.column-confirm-yes:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.column-confirm-no {
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  border-radius: 5px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.column-confirm-no:hover:not(:disabled) {
+  border-color: var(--text-secondary, #94a3b8);
+  color: var(--text-primary, #e2e8f0);
+}
+.column-confirm-no:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 .column-rename-form {
   display: flex;
   flex-direction: column;

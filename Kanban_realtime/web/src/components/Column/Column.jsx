@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Card from '../Card/Card';
-import { Plus, Check, X } from 'lucide-react';
+import { Plus, Check, X, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import { useBoardStore } from '../../stores/boardStore';
 import './Column.css';
@@ -35,6 +35,7 @@ export default function Column({
   searchQuery,
   pendingCardIds,
   focusedCardId,
+  canDelete,
   onCardLabelChange,
   onBoardLabelChange,
   onDueDateChange,
@@ -42,13 +43,16 @@ export default function Column({
   onDescriptionChange,
   onChecklistChange,
 }) {
-  const { updateColumn } = useBoardStore();
+  const { updateColumn, removeColumn } = useBoardStore();
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState('');
   const [renameLoading, setRenameLoading] = useState(false);
   const renameInputRef = useRef(null);
+
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id: column.id,
@@ -119,55 +123,106 @@ export default function Column({
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    setDeleteLoading(true);
+    try {
+      await api.delete(`/boards/${boardId}/columns/${column.id}`);
+      removeColumn(column.id);
+      socket?.emit('column:delete', { boardId, columnId: column.id });
+    } catch (err) {
+      console.error('Erro ao deletar coluna', err);
+      setIsConfirmingDelete(false);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <div ref={setNodeRef} style={style} className="column" {...attributes} {...listeners}>
       <div className="column-header">
-        {isRenaming ? (
-          <div className="column-rename-form" onPointerDown={(e) => e.stopPropagation()}>
-            <input
-              ref={renameInputRef}
-              className={`column-rename-input${renameError ? ' column-rename-input--error' : ''}`}
-              value={renameValue}
-              onChange={(e) => {
-                setRenameValue(e.target.value);
-                setRenameError('');
-              }}
-              onKeyDown={handleRenameKeyDown}
-              disabled={renameLoading}
-              maxLength={51}
-              data-testid="column-rename-input"
-            />
-            {renameError && <p className="column-rename-error">{renameError}</p>}
-            <div className="column-rename-actions">
+        {isConfirmingDelete ? (
+          <div className="column-confirm-delete" onPointerDown={(e) => e.stopPropagation()}>
+            <span className="column-confirm-text">Deletar coluna?</span>
+            <div className="column-confirm-actions">
               <button
-                className="column-rename-confirm"
-                onClick={submitRename}
-                disabled={renameLoading}
-                title="Confirmar (Enter)"
+                className="column-confirm-yes"
+                onClick={handleDeleteConfirm}
+                disabled={deleteLoading}
+                data-testid="column-delete-confirm"
               >
-                <Check size={12} />
+                {deleteLoading ? '...' : 'Sim'}
               </button>
               <button
-                className="column-rename-cancel"
-                onClick={cancelRename}
-                disabled={renameLoading}
-                title="Cancelar (Esc)"
+                className="column-confirm-no"
+                onClick={() => setIsConfirmingDelete(false)}
+                disabled={deleteLoading}
+                data-testid="column-delete-cancel"
               >
-                <X size={12} />
+                Não
               </button>
             </div>
           </div>
         ) : (
-          <span
-            className="column-title"
-            onDoubleClick={startRename}
-            title="Duplo clique para renomear"
-            data-testid="column-title"
-          >
-            {column.name || column.title}
-          </span>
+          <>
+            {isRenaming ? (
+              <div className="column-rename-form" onPointerDown={(e) => e.stopPropagation()}>
+                <input
+                  ref={renameInputRef}
+                  className={`column-rename-input${renameError ? ' column-rename-input--error' : ''}`}
+                  value={renameValue}
+                  onChange={(e) => {
+                    setRenameValue(e.target.value);
+                    setRenameError('');
+                  }}
+                  onKeyDown={handleRenameKeyDown}
+                  disabled={renameLoading}
+                  maxLength={51}
+                  data-testid="column-rename-input"
+                />
+                {renameError && <p className="column-rename-error">{renameError}</p>}
+                <div className="column-rename-actions">
+                  <button
+                    className="column-rename-confirm"
+                    onClick={submitRename}
+                    disabled={renameLoading}
+                    title="Confirmar (Enter)"
+                  >
+                    <Check size={12} />
+                  </button>
+                  <button
+                    className="column-rename-cancel"
+                    onClick={cancelRename}
+                    disabled={renameLoading}
+                    title="Cancelar (Esc)"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <span
+                className="column-title"
+                onDoubleClick={startRename}
+                title="Duplo clique para renomear"
+                data-testid="column-title"
+              >
+                {column.name || column.title}
+              </span>
+            )}
+            <span className="column-count">{visibleCount}</span>
+            {canDelete && !isRenaming && (
+              <button
+                className="column-delete-btn"
+                onClick={() => setIsConfirmingDelete(true)}
+                onPointerDown={(e) => e.stopPropagation()}
+                title="Deletar coluna"
+                data-testid="column-delete-btn"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </>
         )}
-        <span className="column-count">{visibleCount}</span>
       </div>
 
       <div className="column-content animate-slide">
