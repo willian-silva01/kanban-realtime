@@ -31,7 +31,7 @@ module.exports = (io, socket) => {
         }))
       );
       const boardLabels = board.labels ?? [];
-      const boardMembers = board.members.map((m) => m.user);
+      const boardMembers = board.members.map((m) => ({ ...m.user, role: m.role }));
       socket.emit('board:sync', { boardName: board.name, columns, cards, boardLabels, boardMembers });
 
       if (typeof callback === 'function') callback({ success: true, room });
@@ -106,6 +106,10 @@ module.exports = (io, socket) => {
 
   socket.on('column:reorder', ({ boardId, columns }) => {
     socket.to(`board_${boardId}`).emit('column:reorder', { columns });
+  });
+
+  socket.on('column:delete', ({ boardId, columnId }) => {
+    socket.to(`board_${boardId}`).emit('column:deleted', { columnId });
   });
 
   // ─── ASSIGNEES ───────────────────────────────────────────────────────────

@@ -1,0 +1,125 @@
+.add-column-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  min-width: 200px;
+  max-width: 200px;
+  height: fit-content;
+  background: var(--surface-1, rgba(255,255,255,0.06));
+  border: 2px dashed var(--border-medium, rgba(255,255,255,0.15));
+  border-radius: 12px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.add-column-btn:hover {
+  border-color: var(--cl-blue, #6366f1);
+  color: var(--cl-blue, #6366f1);
+  background: var(--surface-2, rgba(99,102,241,0.06));
+}
+
+.add-column-form {
+  min-width: 220px;
+  max-width: 220px;
+  background: var(--col-bg, #1e293b);
+  border: 1px solid var(--border-medium, rgba(255,255,255,0.15));
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.add-column-input {
+  width: 100%;
+  background: var(--input-bg, rgba(255,255,255,0.05));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  border-radius: 6px;
+  color: var(--text-primary, #e2e8f0);
+  font-size: 0.875rem;
+  padding: 7px 10px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.add-column-input:focus {
+  border-color: var(--cl-blue, #6366f1);
+}
+
+.add-column-input--error {
+  border-color: #ef4444;
+}
+
+.add-column-error {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+.add-column-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.add-column-confirm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: var(--cl-blue, #6366f1);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.add-column-confirm:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.add-column-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-column-cancel {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  background: transparent;
+  border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+  border-radius: 6px;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.add-column-cancel:hover:not(:disabled) {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.add-column-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .add-column-btn,
+  .add-column-form {
+    min-width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+  }
+}

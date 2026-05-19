@@ -18,6 +18,7 @@ import Card from '../Card/Card';
 import CursorsLayer from './CursorsLayer';
 import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
+import AddColumnButton from '../AddColumnButton/AddColumnButton';
 import { useBoardStore } from '../../stores/boardStore';
 import { exportToCSV, exportToPDF } from '../../utils/exportBoard';
 import api from '../../services/api';
@@ -69,6 +70,12 @@ export default function Board({ socket, boardId, user }) {
     triggerCommentsPanel,
     archiveCard,
     unarchiveCard,
+    addColumn,
+    updateColumn,
+    removeColumn,
+    addCard,
+    removeCard,
+    updateCard,
   } = useBoardStore();
 
   const offlineQueueRef = useRef([]);
@@ -361,6 +368,13 @@ export default function Board({ socket, boardId, user }) {
       setArchivedCards((prev) => prev.filter((c) => c.id !== card.id));
     };
 
+    const onColumnCreate = (column) => addColumn(column);
+    const onColumnUpdate = (column) => updateColumn(column);
+    const onColumnDeleted = ({ columnId }) => removeColumn(columnId);
+    const onCardCreate = (card) => addCard(card);
+    const onCardUpdate = (card) => updateCard(card);
+    const onCardDelete = ({ cardId }) => removeCard(cardId);
+
     socket.on('board:sync', onBoardSync);
     socket.on('card:move', onCardMove);
     socket.on('card:label:added', onCardLabelAdded);
@@ -382,6 +396,12 @@ export default function Board({ socket, boardId, user }) {
     socket.on('checklist:items:reordered', onChecklistItemsReordered);
     socket.on('card:archived', onCardArchived);
     socket.on('card:unarchived', onCardUnarchived);
+    socket.on('column:create', onColumnCreate);
+    socket.on('column:update', onColumnUpdate);
+    socket.on('column:deleted', onColumnDeleted);
+    socket.on('card:create', onCardCreate);
+    socket.on('card:update', onCardUpdate);
+    socket.on('card:delete', onCardDelete);
 
     return () => {
       socket.off('board:sync', onBoardSync);
@@ -405,6 +425,12 @@ export default function Board({ socket, boardId, user }) {
       socket.off('checklist:items:reordered', onChecklistItemsReordered);
       socket.off('card:archived', onCardArchived);
       socket.off('card:unarchived', onCardUnarchived);
+      socket.off('column:create', onColumnCreate);
+      socket.off('column:update', onColumnUpdate);
+      socket.off('column:deleted', onColumnDeleted);
+      socket.off('card:create', onCardCreate);
+      socket.off('card:update', onCardUpdate);
+      socket.off('card:delete', onCardDelete);
       offlineQueueRef.current = [];
     };
   }, [socket]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -516,6 +542,9 @@ export default function Board({ socket, boardId, user }) {
   };
 
   const hasActiveFilters = !!(activeLabelFilter || myCardsFilter || searchQuery.trim());
+
+  const currentMember = boardMembers.find((m) => m.id === user?.id);
+  const canManageColumns = currentMember && currentMember.role !== 'viewer';
 
   if (!boardSynced) {
     return <SkeletonBoard />;
@@ -693,6 +722,14 @@ export default function Board({ socket, boardId, user }) {
           <DragOverlay>
             {activeCard ? <Card card={activeCard} isOverlay socket={socket} /> : null}
           </DragOverlay>
+
+          {canManageColumns && (
+            <AddColumnButton
+              boardId={boardId}
+              socket={socket}
+              onColumnCreated={addColumn}
+            />
+          )}
         </div>
       </DndContext>
 

@@ -217,6 +217,26 @@ export const useBoardStore = create(
           ),
         })),
 
+      // Columns
+      addColumn: (column) => set((s) => ({ columns: [...s.columns, column] })),
+      updateColumn: (col) =>
+        set((s) => ({
+          columns: s.columns.map((c) => (c.id === col.id ? { ...c, ...col } : c)),
+        })),
+      removeColumn: (columnId) =>
+        set((s) => ({
+          columns: s.columns.filter((c) => c.id !== columnId),
+          cards: s.cards.filter((c) => c.columnId !== columnId),
+        })),
+
+      // Cards (create/delete/update via WS)
+      addCard: (card) => set((s) => ({ cards: [...s.cards, card] })),
+      removeCard: (cardId) => set((s) => ({ cards: s.cards.filter((c) => c.id !== cardId) })),
+      updateCard: (card) =>
+        set((s) => ({
+          cards: s.cards.map((c) => (c.id === card.id ? { ...c, ...card } : c)),
+        })),
+
       // Archive
       archiveCard: (cardId) =>
         set((s) => ({ cards: s.cards.filter((c) => c.id !== cardId) })),
