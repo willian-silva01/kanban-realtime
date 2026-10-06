@@ -13,6 +13,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
 
 ### Corrigido
+- `card:move` recebido de outro cliente posicionava o card no índice errado da coluna destino e não reindexava a coluna de origem (#33).
+- `card:move` recebido de outro cliente apagava labels, responsáveis e checklists do card até o próximo resync (#33).
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Adicionado

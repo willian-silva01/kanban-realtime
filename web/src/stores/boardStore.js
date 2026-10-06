@@ -69,15 +69,24 @@ export const useBoardStore = create(
         set((s) => ({ pendingCardIds: new Set([...s.pendingCardIds, cardId]) })),
 
       // WebSocket event handlers
-      moveCard: ({ card, toColumnId }) =>
+      // card.position é relativa à coluna destino. O card do servidor não traz
+      // labels/assignees/checklists, então mesclamos sobre o card local.
+      moveCard: ({ card, fromColumnId, toColumnId }) =>
         set((s) => {
-          const filtered = s.cards.filter((c) => c.id !== card.id);
-          filtered.splice(card.position, 0, { ...card, columnId: toColumnId });
-          return {
-            cards: filtered.map((c, idx) =>
-              c.columnId === toColumnId ? { ...c, position: idx } : c
-            ),
-          };
+          const local = s.cards.find((c) => c.id === card.id);
+          const srcId = fromColumnId ?? local?.columnId;
+          const rest = s.cards.filter((c) => c.id !== card.id);
+          const byPosition = (a, b) => a.position - b.position;
+          const reindex = (list) => list.map((c, i) => ({ ...c, position: i }));
+
+          const dst = rest.filter((c) => c.columnId === toColumnId).sort(byPosition);
+          dst.splice(card.position, 0, { ...local, ...card, columnId: toColumnId });
+
+          const src =
+            srcId === toColumnId ? [] : rest.filter((c) => c.columnId === srcId).sort(byPosition);
+          const others = rest.filter((c) => c.columnId !== srcId && c.columnId !== toColumnId);
+
+          return { cards: [...others, ...reindex(src), ...reindex(dst)] };
         }),
 
       addLabelToCard: (cardId, label) =>
