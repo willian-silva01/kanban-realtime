@@ -18,6 +18,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Adicionado
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
 
+### Segurança
+- XSS: o nome exibido no cursor de outro usuário vinha do cliente e era inserido como HTML — qualquer membro do board podia executar script no navegador dos demais. O servidor passa a usar o nome cadastrado e o cliente renderiza como texto.
+- Eventos WebSocket com `boardId` agora exigem que o socket esteja na sala do board; antes, qualquer usuário autenticado podia enviar eventos (cards, colunas, labels, cursores) para boards dos quais não é membro.
+- `presence:join` valida o acesso ao board e usa o nome cadastrado.
+- Rate limit de autenticação restrito a login e cadastro; antes incluía `/auth/refresh`, deslogando usuários após ~15 recarregamentos de página em 30 minutos.
+
 ## [1.1.0] — 2026-05-19
 
 PRD v2 — colunas pela UI e sincronização WebSocket consistente.
