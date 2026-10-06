@@ -41,7 +41,7 @@ export function exportToCSV(boardName, columns, cards) {
 
   // BOM for Excel UTF-8 compatibility
   const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const safe = (boardName || 'board').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const safe = (boardName || 'board').replace(/[^a-zA-Z0-9_-]/g, '_');
   triggerDownload(blob, `${safe}_${new Date().toISOString().slice(0, 10)}.csv`);
 }
 
@@ -157,7 +157,7 @@ export function exportToPDF(boardName, columns, cards) {
     y += 4;
   }
 
-  const safe = (boardName || 'board').replace(/[^a-zA-Z0-9_\-]/g, '_');
+  const safe = (boardName || 'board').replace(/[^a-zA-Z0-9_-]/g, '_');
   doc.save(`${safe}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
 

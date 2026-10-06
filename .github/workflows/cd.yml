@@ -72,6 +72,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-images]
     environment: staging
+    # Deploy só roda quando a variável de repositório DEPLOY_ENABLED=true
+    # (requer secrets STAGING_*, PRODUCTION_* e GHCR_TOKEN configurados).
+    if: vars.DEPLOY_ENABLED == 'true'
 
     steps:
       - uses: actions/checkout@v4
