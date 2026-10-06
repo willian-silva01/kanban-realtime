@@ -2,11 +2,16 @@ import { io } from 'socket.io-client';
 
 
 const SOCKET_URL = 'http://localhost:3000';
-const BOARD_ID = 'c4d69abf-f547-46e3-b517-484a9e50a227';
+const BOARD_ID = process.env.QA_BOARD_ID;
 const TOTAL_USERS = 25; // 25 abas simultâneas
 
-// Token da Ana p/ simular a abertura multipla da sala (abrir 25 abas na sala).
-const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImYyZGQxYTcxLWM2MzctNDdjMC1iZTlhLTcxNDk3ODg4ODM5ZCIsImVtYWlsIjoiYW5hQHFhLmNvbSIsImlhdCI6MTc3NjQ4MTUyMSwiZXhwIjoxNzc2NDgyNDIxfQ.piKJkHWCnBYbfIFdIMaG3ZR5Z-F4irnVwokvEWpq9iY";
+// Token de um membro do board (ex.: login de ana@qa.com criada pelo qa-seed.js).
+const TOKEN = process.env.QA_TOKEN;
+
+if (!TOKEN || !BOARD_ID) {
+  console.error("Defina QA_TOKEN e QA_BOARD_ID. Ex.: QA_TOKEN=... QA_BOARD_ID=... node scripts/qa/stress-runner.mjs");
+  process.exit(1);
+}
 
 async function bootLoadTest() {
   console.log(`🚀 Iniciando Stress Test Realtime com ${TOTAL_USERS} usuários virtuais...`);

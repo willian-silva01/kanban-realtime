@@ -41,31 +41,15 @@ O Kanban Realtime é uma plataforma de gerenciamento de tarefas inspirada no Tre
 
 ## Funcionalidades
 
-### Implementadas
-- [x] Gerenciamento de boards (criar, listar, deletar) com RBAC
-- [x] Colunas e cartões com drag-and-drop em tempo real
-- [x] Rastreamento de cursores ao vivo por sessão de board
-- [x] Presença de usuários (quem está online no board)
-- [x] Feed de atividades com broadcast em tempo real
-- [x] Comentários por cartão com sincronização em tempo real
-- [x] Notificações in-app (NotificationBell)
-- [x] Autenticação JWT com tokens de acesso e refresh
-- [x] Rate limiting e headers de segurança com Helmet
+**Colaboração em tempo real** — sincronização de boards, colunas e cartões via WebSocket, presença, cursores ao vivo, indicador "Editando agora", painel de atividades, reconexão com resync e fila offline.
 
-### Roadmap (ver [PRD](docs/PRD-kanban-realtime-v1.md))
-- [ ] Labels / etiquetas nos cartões (P0)
-- [ ] Datas de vencimento com indicadores visuais (P0)
-- [ ] Atribuição de membros a cartões (P0)
-- [ ] Interceptor de refresh automático do token JWT (P0)
-- [ ] Reconexão WebSocket com resync de estado (P0)
-- [ ] Redis para presença distribuída (P0)
-- [ ] Gerenciamento de estado com Zustand (P1)
-- [ ] Checklists nos cartões (P1)
-- [ ] Descrições em Markdown (P1)
-- [ ] Busca e filtros globais no board (P1)
-- [ ] Workspaces (P1)
-- [ ] Notificações por e-mail (P1)
-- [ ] Pipeline CI/CD com GitHub Actions (P1)
+**Cartões** — drag-and-drop, labels, data de vencimento com lembretes, responsáveis, checklists, descrição em Markdown, comentários com menções e reações, arquivamento.
+
+**Organização** — workspaces, templates de board, busca e filtros globais, exportação CSV/PDF, atalhos de teclado.
+
+**Plataforma** — autenticação JWT com refresh automático, RBAC, rate limiting, Helmet, CORS restritivo, notificações in-app e por e-mail, modo escuro, layout responsivo, Redis para presença distribuída, CI/CD com GitHub Actions e Docker.
+
+O histórico por versão está no [CHANGELOG](CHANGELOG.md) e o que vem a seguir no [ROADMAP](ROADMAP.md).
 
 ---
 
@@ -91,13 +75,18 @@ kanban-realtime/
 │   └── src/
 │       ├── components/      # Board, Card, Column, Notificações, ...
 │       ├── contexts/        # AuthContext
-│       ├── pages/           # Login, Registro
-│       └── services/        # Cliente Axios
-├── shared/                  # Tipos e constantes compartilhados
-├── docs/                    # PRD e modelagem do sistema
-│   ├── PRD-kanban-realtime-v1.md
-│   └── 01-modelagem-sistema.md
-└── docker-compose.yml
+│       ├── pages/           # Login, Registro, Dashboard
+│       ├── services/        # Cliente Axios (com refresh automático)
+│       ├── stores/          # Estado global (Zustand)
+│       └── utils/           # Exportação CSV/PDF, helpers
+├── docs/                    # PRDs e modelagem do sistema
+├── scripts/qa/              # Testes manuais de realtime com múltiplos usuários
+├── .github/                 # CI/CD, templates de issue e PR
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── ROADMAP.md
+├── docker-compose.yml       # Postgres + Redis para desenvolvimento
+└── docker-compose.prod.yml
 ```
 
 ---
@@ -202,17 +191,16 @@ Rotas CRUD padrão em `/api/columns`, `/api/cards`, `/api/comments`, `/api/activ
 
 ## Documentação
 
-- [Documento de Requisitos do Produto (PRD)](docs/PRD-kanban-realtime-v1.md)
+- [PRD v1 — Kanban Realtime](docs/PRD-v1-kanban-realtime.md)
+- [PRD v2 — Colunas e sincronização WebSocket](docs/PRD-v2-colunas-websocket.md)
 - [Modelagem do Sistema](docs/01-modelagem-sistema.md)
+- [Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md)
 
 ---
 
 ## Contribuindo
 
-1. Faça um fork do repositório
-2. Crie uma branch de funcionalidade: `git checkout -b feat/sua-funcionalidade`
-3. Faça commits seguindo o padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/): `feat:`, `fix:`, `docs:`, `chore:`
-4. Abra um Pull Request apontando para `main`
+O fluxo de branches, commits, Definition of Done, labels e releases está no [CONTRIBUTING](CONTRIBUTING.md).
 
 ---
 

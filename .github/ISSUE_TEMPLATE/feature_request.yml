@@ -1,0 +1,33 @@
+name: ✨ Funcionalidade
+description: Proponha uma melhoria ou nova funcionalidade
+title: "[FEAT] "
+labels: ["tipo: feature"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema
+      description: Qual dor do usuário isso resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: solucao
+    attributes:
+      label: Comportamento esperado
+      description: Como deve funcionar do ponto de vista do usuário.
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Critérios de aceite
+      placeholder: |
+        - [ ] ...
+        - [ ] Outros clientes conectados veem a mudança em tempo real
+    validations:
+      required: true
+  - type: textarea
+    id: tecnico
+    attributes:
+      label: Notas técnicas
+      description: Endpoints, eventos WebSocket, mudanças de schema, componentes afetados.

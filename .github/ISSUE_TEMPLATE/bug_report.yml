@@ -1,0 +1,43 @@
+name: 🐛 Bug
+description: Algo não funciona como deveria
+title: "[BUG] "
+labels: ["tipo: bug"]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que acontece
+      description: Descreva o comportamento observado.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Abra o board com dois usuários
+        2. Usuário A move um card para outra coluna
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: Impacto
+      options:
+        - P0 — bloqueia o uso ou corrompe dados
+        - P1 — atrapalha, mas há contorno
+        - P2 — cosmético
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto técnico
+      description: Navegador, logs do console/servidor, eventos WebSocket envolvidos, suspeita de causa raiz.
