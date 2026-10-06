@@ -34,6 +34,7 @@ export const useBoardStore = create(
           pendingCardIds: new Set(),
         }),
 
+      setBoardName: (boardName) => set({ boardName }),
       setBoardError: (boardError) => set({ boardError }),
       setActiveCard: (activeCard) => set({ activeCard }),
 

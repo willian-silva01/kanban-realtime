@@ -16,6 +16,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Adicionado
+- Botão "← Boards" e nome do board no header da board page, com truncamento em telas menores (#35).
+- Renomear o board clicando no nome no header (apenas admins); Enter/blur salva, Esc cancela; outros clientes recebem `board:renamed` em tempo real, emitido pelo servidor (#40).
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
 
 ## [1.1.0] — 2026-05-19

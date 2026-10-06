@@ -6,6 +6,13 @@ const prisma = require('../../config/database');
 const ApiError = require('../../utils/ApiError');
 const emailService = require('../email/email.service');
 
+const emitToBoard = (boardId, event, payload) => {
+  try {
+    const { getIo } = require('../../websocket/socket');
+    getIo().to(`board_${boardId}`).emit(event, payload);
+  } catch (_) {}
+};
+
 const BOARD_TEMPLATES = {
   scrum:   ['Backlog', 'To Do', 'In Progress', 'Review', 'Done'],
   kanban:  ['To Do', 'In Progress', 'Done'],
@@ -165,6 +172,10 @@ class BoardService {
         },
       },
     });
+
+    if (data.name !== undefined) {
+      emitToBoard(boardId, 'board:renamed', { boardId, name: board.name });
+    }
 
     return board;
   }

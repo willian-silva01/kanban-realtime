@@ -9,7 +9,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -20,18 +20,20 @@ import ActivityPanel from './components/ActivityPanel/ActivityPanel';
 import NotificationBell from './components/NotificationBell/NotificationBell';
 import ConnectionStatus from './components/ConnectionStatus/ConnectionStatus';
 import EmailPreferences from './components/EmailPreferences/EmailPreferences';
+import BoardTitle from './components/BoardTitle/BoardTitle';
 
 import { useAuth } from './contexts/AuthContext';
 import { useAuthStore } from './stores/authStore';
 import { usePresenceStore } from './stores/presenceStore';
 import { useBoardStore } from './stores/boardStore';
 import { useThemeStore } from './stores/themeStore';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ArrowLeft } from 'lucide-react';
 import './index.css';
 
 // ─── Tela de Board (área protegida) ─────────────────────────────────────────
 function BoardPage() {
   const { boardId } = useParams();
+  const navigate = useNavigate();
   const { logout } = useAuth();
   const socket = usePresenceStore((s) => s.socket);
   const isConnected = usePresenceStore((s) => s.isConnected);
@@ -83,14 +85,26 @@ function BoardPage() {
     <div className="app-container">
       {/* ─── Header ─────────────────────────────────────────── */}
       <header className="header">
-        <h1>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-            <rect x="3" y="3" width="7" height="11" rx="2" fill="#A881FC" />
-            <rect x="14" y="3" width="7" height="7" rx="2" fill="#6A38E3" />
-            <rect x="14" y="14" width="7" height="7" rx="2" fill="#A881FC" opacity="0.7" />
-          </svg>
-          Kanban Realtime
-        </h1>
+        <div className="header-left">
+          <button
+            type="button"
+            className="header-back-btn"
+            onClick={() => navigate('/dashboard')}
+            title="Voltar aos boards"
+          >
+            <ArrowLeft size={16} />
+            <span>Boards</span>
+          </button>
+          <h1>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+              <rect x="3" y="3" width="7" height="11" rx="2" fill="#A881FC" />
+              <rect x="14" y="3" width="7" height="7" rx="2" fill="#6A38E3" />
+              <rect x="14" y="14" width="7" height="7" rx="2" fill="#A881FC" opacity="0.7" />
+            </svg>
+            Kanban Realtime
+          </h1>
+          <BoardTitle boardId={boardId} />
+        </div>
 
         <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           {/* Usuários Online */}
