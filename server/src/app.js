@@ -107,8 +107,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── Rotas da API ───────────────────────────
-// Rota de Auth usa o Rate-Limit exclusivo anti-bruteforce antes mesmo de processar middleware:
-app.use('/api/auth', authLimiter, authRoutes);
+// Anti-bruteforce só em login e cadastro. /auth/refresh roda a cada carregamento de
+// página — sob o mesmo limite, usuários legítimos eram deslogados após ~15 reloads.
+// Refresh/logout seguem cobertos pelo globalLimiter.
+app.use(['/api/auth/login', '/api/auth/register'], authLimiter);
+app.use('/api/auth', authRoutes);
 
 // Demais rotas sobem através do GlobalLimiter (já aplicado explicitamente na diretiva 'use' acima)
 app.use('/api/boards', boardRoutes);

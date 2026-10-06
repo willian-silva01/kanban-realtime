@@ -458,7 +458,6 @@ export default function Board({ socket, boardId, user }) {
         boardId,
         x: e.pageX,
         y: e.pageY,
-        name: user?.name || 'Usuário',
       });
     }
   };
