@@ -11,6 +11,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Projeto movido para a raiz do repositório — o GitHub Actions passa a encontrar `.github/workflows` (CI/CD nunca havia executado).
 - Scripts de QA movidos para `scripts/qa/`; PRDs consolidados em `docs/`.
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
+- CD só executa após CI verde na `main` (`workflow_run`), usando o commit validado pelo CI; também pode ser disparado manualmente.
 
 ### Corrigido
 - Erros de ESLint no frontend que quebrariam o CI.
