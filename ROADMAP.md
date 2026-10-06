@@ -12,6 +12,7 @@ Corrige o que está quebrado antes de adicionar funcionalidades.
 |---|---|---|
 | [#33](https://github.com/willian-silva01/kanban-realtime/issues/33) | P0 | `card:move` — outros clientes veem o card na posição errada |
 | [#38](https://github.com/willian-silva01/kanban-realtime/issues/38) | P1 | SMTP não configurado falha em silêncio; `.env.example` incompleto |
+| — | P1 | Cobertura de linhas do backend de 60% de volta para 70% (testes de `checklist`, `workspace`, `notification`, `assignee` e `email` services) |
 
 ## v1.3.0 — Header e navegação
 
@@ -37,6 +38,7 @@ issues menores; contador e duplicar primeiro (menor esforço, maior uso).
 
 ## Dívida técnica conhecida
 
+- Threshold de cobertura do backend reduzido de 70% para 60% (baseline real quando o CI passou a rodar). Só pode subir.
 - Warning de `react-hooks/exhaustive-deps` em `CommentsPanel.jsx` (`filteredMembers` sem `useMemo`).
 - `server/prisma/migrations/` está no `.gitignore` e o schema é aplicado com `prisma db push` — adotar migrations versionadas antes do primeiro deploy real.
 - Deploy desativado (`DEPLOY_ENABLED`) até existirem os servidores de staging e produção.

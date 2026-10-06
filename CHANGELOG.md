@@ -11,6 +11,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Projeto movido para a raiz do repositório — o GitHub Actions passa a encontrar `.github/workflows` (CI/CD nunca havia executado).
 - Scripts de QA movidos para `scripts/qa/`; PRDs consolidados em `docs/`.
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
+- Threshold de cobertura do backend ajustado para 60%, o valor real medido quando o CI passou a rodar (antes 70%).
 
 ### Corrigido
 - Erros de ESLint no frontend que quebrariam o CI.
