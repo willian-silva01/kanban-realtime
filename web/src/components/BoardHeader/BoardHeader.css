@@ -1,0 +1,253 @@
+/* ── Header da board page ───────────────────────────────────────────────── */
+.header {
+  background: var(--header-bg);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #A881FC, #7446EE);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Lado esquerdo: voltar, marca, nome do board */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  margin-right: 16px;
+  overflow: hidden;
+}
+
+.header-left h1 {
+  flex-shrink: 0;
+}
+
+.header-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.header-back-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.header-board-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 320px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-board-name--editable {
+  cursor: text;
+}
+
+.header-board-name--editable:hover {
+  border-color: var(--border-color);
+  background: var(--hover-bg);
+}
+
+.header-board-name--error {
+  border-color: #EF4444;
+}
+
+.header-board-name-input {
+  width: 260px;
+  max-width: 50vw;
+  padding: 4px 8px;
+  border: 1px solid #7446EE;
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--input-color);
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Lado direito: grupos de controles separados por divisórias */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.header-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border-color);
+}
+
+.header-online {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-online-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.header-online-avatars {
+  display: flex;
+}
+
+.header-online-avatar,
+.header-online-more {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid var(--board-bg);
+  margin-left: -6px;
+}
+
+.header-online-avatar:first-child {
+  margin-left: 0;
+}
+
+.header-online-avatar {
+  background: linear-gradient(135deg, #6A38E3, #A881FC);
+  color: #FFF;
+}
+
+.header-online-more {
+  background: var(--surface-3);
+  color: var(--text-primary);
+}
+
+.header-btn--active {
+  background: rgba(116, 70, 238, 0.18);
+  border-color: rgba(116, 70, 238, 0.45);
+  color: var(--text-primary);
+}
+
+.header-btn-label {
+  margin-left: 6px;
+  font-size: 0.8rem;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6A38E3, #A881FC);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #FFF;
+}
+
+.header-logout-btn {
+  background: rgba(227, 56, 77, 0.1);
+  border: 1px solid rgba(227, 56, 77, 0.2);
+  color: #E3384D;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.header-logout-btn:hover {
+  background: rgba(227, 56, 77, 0.2);
+}
+
+/* Telas médias: a marca cede espaço ao nome do board */
+@media (max-width: 1279px) {
+  .header-left h1 {
+    display: none;
+  }
+}
+
+/* Abaixo de desktop: botões só com ícone */
+@media (max-width: 1023px) {
+  .header .header-btn-label,
+  .header .header-online-label {
+    display: none;
+  }
+}
+
+/* Mobile: só o essencial */
+@media (max-width: 767px) {
+  .header {
+    padding: 10px 16px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  /* .header prefixado: index.css (.icon-btn) é carregado depois deste arquivo */
+  .header .header-back-btn span,
+  .header .conn-status__label,
+  .header .header-online,
+  .header .header-email-pref,
+  .header .header-avatar,
+  .header .header-sep {
+    display: none;
+  }
+
+  .header-board-name {
+    max-width: 40vw;
+    font-size: 0.95rem;
+  }
+}

@@ -1,20 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import './ActivityPanel.css';
-import { Activity, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, Archive, ArrowRightLeft, CheckSquare, Clock, MessageSquare, Plus, UserPlus, X } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useBoardStore } from '../../stores/boardStore';
+import { timeAgo } from '../../utils/timeAgo';
+import './ActivityPanel.css';
 
-// CORRIGIDO: componente não recebe mais prop `token` — usa o interceptor global
-// do api.js que já injeta o header Authorization automaticamente.
-// A prop `token` era passada como `undefined` em App.jsx, causando que o guard
-// `if (!boardId || !token) return;` abortasse a requisição silenciosamente.
-export default function ActivityPanel({ socket, boardId }) {
+const quoted = (text) => (text ? `"${text}"` : 'um card');
+
+// Ícone, cor e texto por tipo de atividade (ActivityLog.action no backend).
+const ACTIVITY_TYPES = {
+  CARD_MOVED: {
+    icon: ArrowRightLeft,
+    color: '#3B82F6',
+    text: (m, columnName) =>
+      columnName ? `moveu ${quoted(m?.cardTitle)} para "${columnName}"` : `moveu ${quoted(m?.cardTitle)} de coluna`,
+  },
+  CARD_CREATED: { icon: Plus, color: '#22C55E', text: (m) => `criou o card ${quoted(m?.cardTitle)}` },
+  COMMENT_CREATED: { icon: MessageSquare, color: '#A855F7', text: (m) => `comentou em ${quoted(m?.cardTitle)}` },
+  CARD_ASSIGNEE_ADDED: {
+    icon: UserPlus,
+    color: '#F59E0B',
+    text: (m) => (m?.assigneeName ? `atribuiu ${m.assigneeName} a um card` : 'atribuiu um responsável a um card'),
+  },
+  CHECKLIST_ITEM_TOGGLED: {
+    icon: CheckSquare,
+    color: '#14B8A6',
+    text: (m) => `${m?.completed ? 'completou' : 'desmarcou'} um item de checklist`,
+  },
+  CARD_ARCHIVED: { icon: Archive, color: '#F97316', text: () => 'arquivou um card' },
+};
+
+const FALLBACK_TYPE = { icon: Activity, color: '#8E9BAE', text: () => 'atualizou o board' };
+
+const REFRESH_MS = 60 * 1000; // atualiza "há N min" enquanto o painel está aberto
+
+export default function ActivityPanel({ socket, boardId, isOpen, onClose }) {
   const { isAuthenticated } = useAuth();
+  const columns = useBoardStore((s) => s.columns);
   const [activities, setActivities] = useState([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [, setTick] = useState(0);
 
-  // ─── Carregar histórico via REST ────────────────────────────────────────
-  // Guard correto: boardId presente e usuário autenticado (token existe no localStorage)
+  // Histórico via REST (carregado mesmo fechado, para abrir instantâneo)
   useEffect(() => {
     if (!boardId || !isAuthenticated) return;
 
@@ -22,9 +49,10 @@ export default function ActivityPanel({ socket, boardId }) {
       .get(`/boards/${boardId}/activities`)
       .then((res) => res.data)
       .then((res) => {
-        if (res.success && res.data?.activities) {
+        // GET /boards/:id/activities → { success, data: Activity[], pagination }
+        if (res.success && Array.isArray(res.data)) {
           setActivities(
-            res.data.activities.map((a) => ({
+            res.data.map((a) => ({
               id: a.id,
               type: a.action,
               user: a.user,
@@ -36,14 +64,13 @@ export default function ActivityPanel({ socket, boardId }) {
       })
       .catch((err) => {
         // 401 já é tratado globalmente pelo interceptor (auth:logout)
-        // Outros erros: apenas silencia (não quebra a UI)
         if (err.response?.status !== 401) {
           console.error('[ActivityPanel] Erro ao carregar atividades:', err.message);
         }
       });
   }, [boardId, isAuthenticated]);
 
-  // ─── Escutar eventos WebSocket ───────────────────────────────────────────
+  // Novas atividades em tempo real
   useEffect(() => {
     if (!socket) return;
 
@@ -56,163 +83,59 @@ export default function ActivityPanel({ socket, boardId }) {
     return () => socket.off('activity:new', handleNewActivity);
   }, [socket]);
 
-  // ─── Renderiza o texto da atividade ─────────────────────────────────────
-  const renderText = (act) => {
-    switch (act.type) {
-      case 'CARD_MOVED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> moveu "{act.metadata?.cardTitle}" de coluna.
-          </span>
-        );
-      case 'CARD_CREATED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> criou o card "{act.metadata?.cardTitle}".
-          </span>
-        );
-      case 'COLUMN_CREATED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> criou a coluna.
-          </span>
-        );
-      case 'CARD_ARCHIVED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> arquivou um card.
-          </span>
-        );
-      case 'CARD_ASSIGNEE_ADDED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> atribuiu{act.metadata?.assigneeName ? ` ${act.metadata.assigneeName}` : ''} a um card.
-          </span>
-        );
-      case 'CHECKLIST_ITEM_TOGGLED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> {act.metadata?.completed ? 'completou' : 'desmarcou'} um item de checklist.
-          </span>
-        );
-      case 'COMMENT_CREATED':
-        return (
-          <span>
-            <b>{act.user?.name}</b> comentou em "{act.metadata?.cardTitle}".
-          </span>
-        );
-      default:
-        return (
-          <span>
-            <b>{act.user?.name}</b> executou ação: {act.type}
-          </span>
-        );
-    }
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = setInterval(() => setTick((t) => t + 1), REFRESH_MS);
+    const onKeyDown = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  // Atividades antigas não têm toColumnName — cai no nome atual da coluna
+  const columnName = (m) => m?.toColumnName ?? columns.find((c) => c.id === m?.toColumnId)?.name;
 
   return (
-    <div style={{ position: 'fixed', right: 0, top: 0, height: '100vh', zIndex: 10 }}>
-      {/* Botão de abrir painel */}
-      {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          style={{
-            position: 'absolute',
-            right: 20,
-            top: 80,
-            padding: 12,
-            borderRadius: 8,
-            background: 'var(--brand)',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            gap: 8,
-            alignItems: 'center',
-          }}
-        >
+    <aside className="activity-panel" aria-label="Atividades do board">
+      <div className="activity-panel__header">
+        <h3>
           <Activity size={18} /> Atividades
+        </h3>
+        <button type="button" className="activity-panel__close" onClick={onClose} title="Fechar (Esc)">
+          <X size={18} />
         </button>
-      )}
+      </div>
 
-      {/* Painel lateral */}
-      {isOpen && (
-        <div
-          style={{
-            width: 320,
-            height: '100%',
-            background: 'var(--board-bg)',
-            borderLeft: '1px solid var(--border-color)',
-            boxShadow: '-10px 0 30px rgba(0,0,0,0.5)',
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-            <h3 style={{ margin: 0, display: 'flex', gap: 8, alignItems: 'center' }}>
-              <Activity size={18} /> Activity
-            </h3>
-            <button
-              onClick={() => setIsOpen(false)}
-              style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}
-            >
-              ✖
-            </button>
-          </div>
-
-          <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {activities.map((act) => (
-              <div
-                key={act.id}
-                style={{
-                  background: 'var(--card-bg)',
-                  padding: 12,
-                  borderRadius: 8,
-                  fontSize: '0.85rem',
-                  border: '1px solid var(--border-faint)',
-                }}
-              >
-                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: 'var(--brand)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {act.user?.name?.charAt(0).toUpperCase() || '?'}
-                  </div>
-                  <div style={{ flex: 1, lineHeight: 1.4 }}>
-                    {renderText(act)}
-                    <div
-                      style={{
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.7rem',
-                        marginTop: 4,
-                        display: 'flex',
-                        gap: 4,
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Clock size={10} /> {new Date(act.createdAt).toLocaleTimeString()}
-                    </div>
-                  </div>
-                </div>
+      <ul className="activity-panel__list">
+        {activities.map((act) => {
+          const type = ACTIVITY_TYPES[act.type] ?? FALLBACK_TYPE;
+          const Icon = type.icon;
+          return (
+            <li key={act.id} className="activity-item">
+              <span className="activity-item__icon" style={{ color: type.color, background: `${type.color}1F` }}>
+                <Icon size={14} />
+              </span>
+              <div className="activity-item__body">
+                <p className="activity-item__text">
+                  <b>{act.user?.name ?? 'Alguém'}</b> {type.text(act.metadata, columnName(act.metadata))}
+                </p>
+                <time
+                  className="activity-item__time"
+                  dateTime={act.createdAt}
+                  title={new Date(act.createdAt).toLocaleString('pt-BR')}
+                >
+                  <Clock size={10} /> {timeAgo(act.createdAt)}
+                </time>
               </div>
-            ))}
-            {activities.length === 0 && (
-              <p style={{ color: 'gray', fontSize: '0.8rem' }}>Nenhuma atividade recente.</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+            </li>
+          );
+        })}
+      </ul>
+      {activities.length === 0 && <p className="activity-panel__empty">Nenhuma atividade recente.</p>}
+    </aside>
   );
 }

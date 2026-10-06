@@ -268,118 +268,6 @@ body {
   width: 100vw;
 }
 
-.header {
-  background: var(--header-bg);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, #A881FC, #7446EE);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Header — lado esquerdo: voltar, marca, nome do board */
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  min-width: 0;
-  margin-right: 16px;
-  overflow: hidden;
-}
-
-.header-left h1 {
-  flex-shrink: 0;
-}
-
-/* Abaixo de desktop a marca cede espaço ao nome do board */
-@media (max-width: 1023px) {
-  .header-left h1 {
-    display: none;
-  }
-}
-
-.header-right {
-  flex-shrink: 0;
-}
-
-.header-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.header-back-btn:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-}
-
-.header-board-name {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 320px;
-  padding: 4px 8px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text-primary);
-  font-size: 1.05rem;
-  font-weight: 600;
-  font-family: inherit;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.header-board-name--editable {
-  cursor: text;
-}
-
-.header-board-name--editable:hover {
-  border-color: var(--border-color);
-  background: var(--hover-bg);
-}
-
-.header-board-name--error {
-  border-color: #EF4444;
-}
-
-.header-board-name-input {
-  width: 260px;
-  max-width: 50vw;
-  padding: 4px 8px;
-  border: 1px solid #7446EE;
-  border-radius: 6px;
-  background: var(--input-bg);
-  color: var(--input-color);
-  font-size: 1.05rem;
-  font-weight: 600;
-  font-family: inherit;
-  outline: none;
-}
-
 /* Kanban Board Container */
 .board-container {
   flex: 1;
@@ -391,8 +279,9 @@ body {
   border-top: 1px solid var(--border-faint);
 }
 
-/* ── Theme toggle button ──────────────────────────────────────────────────────── */
-.theme-toggle-btn {
+/* ── Botão de ícone (tema, atividades, preferências...) ─────────────────────── */
+.theme-toggle-btn,
+.icon-btn {
   background: var(--hover-bg);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
@@ -405,49 +294,11 @@ body {
   font-family: inherit;
 }
 
-.theme-toggle-btn:hover {
+.theme-toggle-btn:hover,
+.icon-btn:hover {
   background: var(--hover-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color);
-}
-
-/* ── Header responsivo ───────────────────────────────────────────────────── */
-@media (max-width: 767px) {
-  .header {
-    padding: 10px 16px;
-  }
-
-  .header h1 {
-    font-size: 1.05rem;
-    gap: 8px;
-  }
-
-  .header-left {
-    gap: 8px;
-  }
-
-  .header-left h1,
-  .header-back-btn span,
-  .conn-status__label {
-    display: none;
-  }
-
-  .header-board-name {
-    max-width: 40vw;
-    font-size: 0.95rem;
-  }
-
-  .header-right {
-    gap: 10px !important;
-  }
-
-  .header-online {
-    display: none !important;
-  }
-
-  .header-email-pref {
-    display: none !important;
-  }
 }
 
 /* Scrollbars visuais */

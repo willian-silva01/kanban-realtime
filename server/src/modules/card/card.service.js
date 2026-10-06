@@ -329,7 +329,8 @@ class CardService {
       cardId,
       cardTitle: movedCard.title,
       fromColumn: card.columnId,
-      toColumnId: toColumnId
+      toColumnId: toColumnId,
+      toColumnName: movedCard.column.name,
     });
     emitActivity(card.column.boardId, log);
 
@@ -339,7 +340,7 @@ class CardService {
       userId,
       'CARD_MOVED',
       cardId,
-      `${log.user.name} moveu o card "${movedCard.title}" para outra coluna`
+      `${log.user.name} moveu o card "${movedCard.title}" para "${movedCard.column.name}"`
     );
 
     return {

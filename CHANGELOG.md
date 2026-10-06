@@ -13,11 +13,14 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
 
 ### Corrigido
+- Painel de atividades nunca carregava o histórico: o frontend esperava `data.activities`, mas a API retorna `data` como lista (#34).
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Adicionado
 - Botão "← Boards" e nome do board no header da board page, com truncamento em telas menores (#35).
 - Renomear o board clicando no nome no header (apenas admins); Enter/blur salva, Esc cancela; outros clientes recebem `board:renamed` em tempo real, emitido pelo servidor (#40).
+- Botão "Atividades" no header; painel em português, com tempo relativo ("há 5 min"), ícone e cor por tipo de atividade e coluna destino em "moveu X para Y"; fecha com Esc (#34).
+- Header reorganizado em grupos com divisórias: até 3 avatares online + "+N", ícone de preferências de e-mail, controles secundários ocultos no mobile (#37).
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
 
 ## [1.1.0] — 2026-05-19
