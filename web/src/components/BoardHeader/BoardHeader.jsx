@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Activity, Moon, Settings, Sun } from 'lucide-react';
+import { ArrowLeft, Activity, Moon, MousePointer2, Settings, Sun } from 'lucide-react';
 import BoardTitle from '../BoardTitle/BoardTitle';
 import ConnectionStatus from '../ConnectionStatus/ConnectionStatus';
 import NotificationBell from '../NotificationBell/NotificationBell';
@@ -40,7 +40,7 @@ function OnlineUsers({ users }) {
 
 /**
  * Header da board page:
- * [← Boards] [Marca] [Nome do board]   [Online] | [Conexão] | [Atividades] [🔔] [Tema] [⚙] | [Avatar] [Sair]
+ * [← Boards] [Marca] [Nome do board]   [Online] | [Conexão] | [Atividades] [🔔] [Cursores] [Tema] [⚙] | [Avatar] [Sair]
  */
 export default function BoardHeader({ boardId, activityOpen, onToggleActivity, onOpenEmailPrefs }) {
   const navigate = useNavigate();
@@ -50,6 +50,8 @@ export default function BoardHeader({ boardId, activityOpen, onToggleActivity, o
   const isConnected = usePresenceStore((s) => s.isConnected);
   const isReconnecting = usePresenceStore((s) => s.isReconnecting);
   const onlineUsers = usePresenceStore((s) => s.onlineUsers);
+  const showCursors = usePresenceStore((s) => s.showCursors);
+  const toggleShowCursors = usePresenceStore((s) => s.toggleShowCursors);
   const theme = useThemeStore((s) => s.theme);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
@@ -94,6 +96,19 @@ export default function BoardHeader({ boardId, activityOpen, onToggleActivity, o
           <span className="header-btn-label">Atividades</span>
         </button>
         <NotificationBell socket={socket} />
+        <button
+          type="button"
+          className={`icon-btn${showCursors ? '' : ' header-btn--off'}`}
+          onClick={toggleShowCursors}
+          aria-pressed={showCursors}
+          title={
+            showCursors
+              ? 'Ocultar cursores (o seu também deixa de ser compartilhado)'
+              : 'Mostrar cursores dos outros usuários'
+          }
+        >
+          <MousePointer2 size={16} />
+        </button>
         <button
           type="button"
           className="icon-btn"

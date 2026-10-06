@@ -64,6 +64,18 @@ describe('BoardHeader', () => {
     expect(onToggleActivity).toHaveBeenCalled();
   });
 
+  it('toggle de cursores alterna a preferência na store', () => {
+    usePresenceStore.setState({ showCursors: true });
+    renderHeader();
+    const btn = screen.getByTitle(/ocultar cursores/i);
+
+    expect(btn).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(btn);
+
+    expect(usePresenceStore.getState().showCursors).toBe(false);
+    expect(screen.getByTitle(/mostrar cursores/i)).toHaveAttribute('aria-pressed', 'false');
+  });
+
   it('botão de preferências de e-mail abre o modal', () => {
     const { onOpenEmailPrefs } = renderHeader();
     fireEvent.click(screen.getByTitle('Preferências de notificação por e-mail'));

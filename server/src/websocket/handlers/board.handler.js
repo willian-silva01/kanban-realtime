@@ -220,6 +220,11 @@ module.exports = (io, socket) => {
     socket.volatile.to(`board_${boardId}`).emit('cursor:move', { userId, x, y, name });
   });
 
+  // Usuário desligou o compartilhamento de cursores: some da tela dos outros
+  socket.on('cursor:hide', ({ boardId }) => {
+    socket.to(`board_${boardId}`).emit('cursor:remove', { userId });
+  });
+
   // ─── PRESENCE (USUÁRIOS ONLINE) ──────────────────────────────────────────
 
   socket.on('presence:join', async ({ boardId, name }) => {

@@ -21,6 +21,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Renomear o board clicando no nome no header (apenas admins); Enter/blur salva, Esc cancela; outros clientes recebem `board:renamed` em tempo real, emitido pelo servidor (#40).
 - Botão "Atividades" no header; painel em português, com tempo relativo ("há 5 min"), ícone e cor por tipo de atividade e coluna destino em "moveu X para Y"; fecha com Esc (#34).
 - Header reorganizado em grupos com divisórias: até 3 avatares online + "+N", ícone de preferências de e-mail, controles secundários ocultos no mobile (#37).
+- Botão no header para ocultar/mostrar cursores de outros usuários, salvo entre sessões; desligado, o próprio cursor deixa de ser enviado e some da tela dos demais (`cursor:hide`) (#36).
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
 
 ## [1.1.0] — 2026-05-19

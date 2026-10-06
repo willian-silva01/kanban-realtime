@@ -251,3 +251,8 @@
     font-size: 0.95rem;
   }
 }
+
+/* Toggle desligado (ex.: cursores ocultos) */
+.header .header-btn--off {
+  opacity: 0.45;
+}

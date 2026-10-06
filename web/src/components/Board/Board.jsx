@@ -20,6 +20,7 @@ import SkeletonBoard from '../SkeletonBoard/SkeletonBoard';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import AddColumnButton from '../AddColumnButton/AddColumnButton';
 import { useBoardStore } from '../../stores/boardStore';
+import { usePresenceStore } from '../../stores/presenceStore';
 import { exportToCSV, exportToPDF } from '../../utils/exportBoard';
 import api from '../../services/api';
 import './Board.css';
@@ -449,8 +450,15 @@ export default function Board({ socket, boardId, user }) {
 
   // ── Mouse tracking ─────────────────────────────────────────────────────────
 
+  const showCursors = usePresenceStore((s) => s.showCursors);
+
+  // Ao desligar, remove o próprio cursor da tela dos outros (senão fica congelado)
+  useEffect(() => {
+    if (!showCursors && socket && boardId) socket.emit('cursor:hide', { boardId });
+  }, [showCursors, socket, boardId]);
+
   const handlePointerMove = (e) => {
-    if (!socket) return;
+    if (!socket || !showCursors) return;
     const now = Date.now();
     if (now - lastEmitTime.current > THROTTLE_MS) {
       lastEmitTime.current = now;
@@ -724,7 +732,7 @@ export default function Board({ socket, boardId, user }) {
           onPointerMove={handlePointerMove}
           onScroll={handleColScroll}
         >
-          <CursorsLayer socket={socket} />
+          {showCursors && <CursorsLayer socket={socket} />}
 
           <SortableContext
             items={columns.map((c) => c.id)}
