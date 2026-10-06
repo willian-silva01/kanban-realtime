@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const prisma = require('../../config/database');
 const env = require('../../config/env');
+const logger = require('../../utils/logger');
 
 const RATE_LIMIT_MS = 60 * 60 * 1000; // 1 hora
 
@@ -10,8 +11,24 @@ class EmailService {
     this._transporter = null;
   }
 
+  isEnabled() {
+    return Boolean(env.SMTP_HOST);
+  }
+
+  // Chamado no startup para deixar explícito no log se o envio está ativo.
+  logStatus() {
+    if (!this.isEnabled()) {
+      logger.warn('[Email] SMTP_HOST não configurado — envio de e-mails DESABILITADO. Configure as variáveis SMTP_* no .env (ver server/.env.example).');
+      return;
+    }
+    logger.info(`[Email] SMTP habilitado — ${env.SMTP_HOST}:${env.SMTP_PORT}`);
+    if (!env.APP_URL && !env.isDev) {
+      logger.warn(`[Email] APP_URL não configurado — links de descadastro apontarão para http://localhost:${env.PORT}.`);
+    }
+  }
+
   _getTransporter() {
-    if (!env.SMTP_HOST) return null;
+    if (!this.isEnabled()) return null;
     if (!this._transporter) {
       this._transporter = nodemailer.createTransport({
         host: env.SMTP_HOST,
@@ -140,9 +157,9 @@ class EmailService {
   // ── Public send methods ────────────────────────────────────
 
   async sendMentionEmail({ toEmail, toName, toUserId, mentionedBy, cardTitle, boardName, commentContent }) {
-    if (!await this._canSend(toUserId, 'MENTIONED', toUserId)) return;
     const transporter = this._getTransporter();
     if (!transporter) return;
+    if (!await this._canSend(toUserId, 'MENTIONED', toUserId)) return;
 
     const preview = commentContent.replace(/@\[([^\]]+)\]/g, '@...').slice(0, 300);
     const unsubUrl = this._unsubscribeUrl(toUserId, 'MENTIONED');
@@ -166,9 +183,9 @@ class EmailService {
   }
 
   async sendAssignedEmail({ toEmail, toName, toUserId, assignedBy, cardTitle, boardName }) {
-    if (!await this._canSend(toUserId, 'CARD_ASSIGNED', toUserId)) return;
     const transporter = this._getTransporter();
     if (!transporter) return;
+    if (!await this._canSend(toUserId, 'CARD_ASSIGNED', toUserId)) return;
 
     const unsubUrl = this._unsubscribeUrl(toUserId, 'CARD_ASSIGNED');
     const subject = `Você foi atribuído ao card "${cardTitle}"`;
@@ -190,9 +207,9 @@ class EmailService {
   }
 
   async sendDueDateEmail({ toEmail, toName, toUserId, cardTitle, boardName, dueDate }) {
-    if (!await this._canSend(toUserId, 'DUE_DATE_REMINDER', toUserId)) return;
     const transporter = this._getTransporter();
     if (!transporter) return;
+    if (!await this._canSend(toUserId, 'DUE_DATE_REMINDER', toUserId)) return;
 
     const formatted = new Date(dueDate).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     const unsubUrl = this._unsubscribeUrl(toUserId, 'DUE_DATE_REMINDER');
@@ -215,9 +232,9 @@ class EmailService {
   }
 
   async sendMemberAddedEmail({ toEmail, toName, toUserId, addedBy, contextName, contextType }) {
-    if (!await this._canSend(toUserId, 'BOARD_INVITE', toUserId)) return;
     const transporter = this._getTransporter();
     if (!transporter) return;
+    if (!await this._canSend(toUserId, 'BOARD_INVITE', toUserId)) return;
 
     const label = contextType === 'workspace' ? 'workspace' : 'board';
     const unsubUrl = this._unsubscribeUrl(toUserId, 'BOARD_INVITE');

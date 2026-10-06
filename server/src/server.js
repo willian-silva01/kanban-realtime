@@ -3,6 +3,7 @@ const { initSocket } = require('./websocket/socket');
 const env = require('./config/env');
 const logger = require('./utils/logger');
 const app = require('./app');
+const emailService = require('./modules/email/email.service');
 
 const server = http.createServer(app);
 
@@ -12,6 +13,7 @@ initSocket(server).then(() => {
     logger.info(`📍 Ambiente: ${env.NODE_ENV}`);
     logger.info(`🔗 URL: http://localhost:${env.PORT}`);
     logger.info(`❤️  Health: http://localhost:${env.PORT}/api/health`);
+    emailService.logStatus();
   });
 });
 

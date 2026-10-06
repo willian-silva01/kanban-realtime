@@ -13,7 +13,12 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
 
 ### Corrigido
+- Servidor avisa no startup quando o SMTP não está configurado (antes o envio de e-mails era desabilitado em silêncio) e quando falta `APP_URL` fora de desenvolvimento (#38).
+- Com SMTP desabilitado, os envios de e-mail não consultam mais o banco à toa (#38).
 - Erros de ESLint no frontend que quebrariam o CI.
+
+### Documentação
+- `server/.env.example` e README documentam `SMTP_*`, `APP_URL` e como gerar senha de app no Gmail/Outlook (#38).
 
 ### Adicionado
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
