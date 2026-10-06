@@ -39,3 +39,9 @@ qa-data.json
 
 # Temp / community skills
 temp-community-skills/
+
+# Testes
+coverage/
+
+# Claude Code (configuração local)
+.claude/
