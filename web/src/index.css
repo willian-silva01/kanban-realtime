@@ -268,29 +268,6 @@ body {
   width: 100vw;
 }
 
-.header {
-  background: var(--header-bg);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 16px 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(90deg, #A881FC, #7446EE);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 /* Kanban Board Container */
 .board-container {
   flex: 1;
@@ -302,8 +279,9 @@ body {
   border-top: 1px solid var(--border-faint);
 }
 
-/* ── Theme toggle button ──────────────────────────────────────────────────────── */
-.theme-toggle-btn {
+/* ── Botão de ícone (tema, atividades, preferências...) ─────────────────────── */
+.theme-toggle-btn,
+.icon-btn {
   background: var(--hover-bg);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
@@ -316,34 +294,11 @@ body {
   font-family: inherit;
 }
 
-.theme-toggle-btn:hover {
+.theme-toggle-btn:hover,
+.icon-btn:hover {
   background: var(--hover-bg-strong);
   color: var(--text-primary);
   border-color: var(--border-color);
-}
-
-/* ── Header responsivo ───────────────────────────────────────────────────── */
-@media (max-width: 767px) {
-  .header {
-    padding: 10px 16px;
-  }
-
-  .header h1 {
-    font-size: 1.05rem;
-    gap: 8px;
-  }
-
-  .header-right {
-    gap: 10px !important;
-  }
-
-  .header-online {
-    display: none !important;
-  }
-
-  .header-email-pref {
-    display: none !important;
-  }
 }
 
 /* Scrollbars visuais */

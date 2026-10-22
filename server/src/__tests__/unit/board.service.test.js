@@ -1,4 +1,8 @@
 jest.mock('../../config/database', () => require('../mocks/prisma'));
+const mockEmit = jest.fn();
+jest.mock('../../websocket/socket', () => ({
+  getIo: jest.fn(() => ({ to: jest.fn(() => ({ emit: mockEmit })) })),
+}));
 
 const prisma = require('../../config/database');
 const boardService = require('../../modules/board/board.service');
@@ -100,6 +104,35 @@ describe('BoardService.getById', () => {
     const result = await boardService.getById('board-1', 'user-1');
 
     expect(result).toEqual(mockBoard);
+  });
+});
+
+describe('BoardService.update', () => {
+  it('renomeia o board e emite board:renamed para a sala', async () => {
+    prisma.boardMember.findUnique.mockResolvedValue({ role: 'admin' });
+    prisma.board.update.mockResolvedValue({ id: 'board-1', name: 'Novo nome' });
+
+    const board = await boardService.update('board-1', 'user-1', { name: 'Novo nome' });
+
+    expect(board.name).toBe('Novo nome');
+    expect(mockEmit).toHaveBeenCalledWith('board:renamed', { boardId: 'board-1', name: 'Novo nome' });
+  });
+
+  it('não emite board:renamed quando o nome não muda', async () => {
+    prisma.boardMember.findUnique.mockResolvedValue({ role: 'admin' });
+    prisma.board.update.mockResolvedValue({ id: 'board-1', name: 'Board' });
+
+    await boardService.update('board-1', 'user-1', {});
+
+    expect(mockEmit).not.toHaveBeenCalled();
+  });
+
+  it('bloqueia quem não é admin do board', async () => {
+    prisma.boardMember.findUnique.mockResolvedValue({ role: 'editor' });
+
+    await expect(boardService.update('board-1', 'user-1', { name: 'X' }))
+      .rejects.toMatchObject({ code: 'INSUFFICIENT_PERMISSIONS' });
+    expect(prisma.board.update).not.toHaveBeenCalled();
   });
 });
 

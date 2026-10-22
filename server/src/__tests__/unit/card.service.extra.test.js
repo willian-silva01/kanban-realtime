@@ -72,7 +72,7 @@ describe('CardService.update', () => {
 
 describe('CardService.move — sucesso', () => {
   it('deve mover card entre colunas e disparar notificação', async () => {
-    const targetColumn = { id: 'col-2', boardId: 'board-1' };
+    const targetColumn = { id: 'col-2', name: 'Doing', boardId: 'board-1' };
     const movedCard = { ...MOCK_CARD, columnId: 'col-2', position: 0, column: targetColumn };
 
     prisma.card.findUnique
@@ -93,6 +93,12 @@ describe('CardService.move — sucesso', () => {
 
     expect(result.fromColumnId).toBe('col-1');
     expect(result.toColumnId).toBe('col-2');
-    expect(notificationService.notifyBoard).toHaveBeenCalled();
+    expect(activityService.log).toHaveBeenCalledWith(
+      expect.anything(), 'user-1', 'CARD_MOVED',
+      expect.objectContaining({ toColumnId: 'col-2', toColumnName: 'Doing' })
+    );
+    expect(notificationService.notifyBoard).toHaveBeenCalledWith(
+      expect.anything(), 'user-1', 'CARD_MOVED', 'card-1', expect.stringContaining('para "Doing"')
+    );
   });
 });

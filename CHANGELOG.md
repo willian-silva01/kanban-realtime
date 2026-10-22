@@ -19,12 +19,18 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - `card:move` recebido de outro cliente apagava labels, responsáveis e checklists do card até o próximo resync (#33).
 - Servidor avisa no startup quando o SMTP não está configurado (antes o envio de e-mails era desabilitado em silêncio) e quando falta `APP_URL` fora de desenvolvimento (#38).
 - Com SMTP desabilitado, os envios de e-mail não consultam mais o banco à toa (#38).
+- Painel de atividades nunca carregava o histórico: o frontend esperava `data.activities`, mas a API retorna `data` como lista (#34).
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Documentação
 - `server/.env.example` e README documentam `SMTP_*`, `APP_URL` e como gerar senha de app no Gmail/Outlook (#38).
 
 ### Adicionado
+- Botão "← Boards" e nome do board no header da board page, com truncamento em telas menores (#35).
+- Renomear o board clicando no nome no header (apenas admins); Enter/blur salva, Esc cancela; outros clientes recebem `board:renamed` em tempo real, emitido pelo servidor (#40).
+- Botão "Atividades" no header; painel em português, com tempo relativo ("há 5 min"), ícone e cor por tipo de atividade e coluna destino em "moveu X para Y"; fecha com Esc (#34).
+- Header reorganizado em grupos com divisórias: até 3 avatares online + "+N", ícone de preferências de e-mail, controles secundários ocultos no mobile (#37).
+- Botão no header para ocultar/mostrar cursores de outros usuários, salvo entre sessões; desligado, o próprio cursor deixa de ser enviado e some da tela dos demais (`cursor:hide`) (#36).
 - `CONTRIBUTING.md`, `ROADMAP.md`, templates de issue e de pull request.
 
 ### Segurança
