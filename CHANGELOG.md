@@ -12,6 +12,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Scripts de QA movidos para `scripts/qa/`; PRDs consolidados em `docs/`.
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
 - Threshold de cobertura do backend ajustado para 60%, o valor real medido quando o CI passou a rodar (antes 70%).
+- CD só executa após CI verde na `main` (`workflow_run`), usando o commit validado pelo CI; também pode ser disparado manualmente.
 
 ### Corrigido
 - Erros de ESLint no frontend que quebrariam o CI.
