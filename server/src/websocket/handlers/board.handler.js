@@ -2,9 +2,26 @@ const logger = require('../../utils/logger');
 const presenceService = require('../services/presence.service');
 const activityService = require('../../modules/activity/activity.service');
 
+// Eventos que chegam antes de o socket estar (ou depois de deixar) a sala do board
+const ROOM_EXEMPT_EVENTS = new Set(['board:join', 'board:leave', 'presence:join', 'presence:leave']);
+
 module.exports = (io, socket) => {
   const userId = socket.user.id;
   const editingTimers = new Map(); // cardId → { boardId, timer }
+
+  // Todo evento com boardId exige que o socket esteja na sala do board.
+  // board:join só admite membros (getById → _checkAccess); sem esta guarda,
+  // qualquer usuário autenticado injetava eventos em boards alheios.
+  socket.use((packet, next) => {
+    const [event, payload] = packet;
+    if (ROOM_EXEMPT_EVENTS.has(event) || !payload?.boardId) return next();
+    if (socket.rooms.has(`board_${payload.boardId}`)) return next();
+
+    logger.warn(`[Socket] ${event} bloqueado — user=${userId} fora da room board_${payload.boardId}`);
+    const ack = packet[packet.length - 1];
+    if (typeof ack === 'function') ack({ success: false, message: 'Você não está neste board.' });
+    // sem next(): o evento é descartado
+  });
 
   // ─── ENTRAR E SAIR NO BOARD (ROOMS) ─────────────────────────────────────
 
@@ -34,6 +51,8 @@ module.exports = (io, socket) => {
       );
       const boardLabels = board.labels ?? [];
       const boardMembers = board.members.map((m) => ({ ...m.user, role: m.role }));
+      // Nome confiável (do banco) para cursores e presença — nunca o enviado pelo cliente
+      socket.data.userName = boardMembers.find((m) => m.id === userId)?.name;
       socket.emit('board:sync', { boardName: board.name, columns, cards, boardLabels, boardMembers });
 
       if (typeof callback === 'function') callback({ success: true, room });
@@ -216,15 +235,32 @@ module.exports = (io, socket) => {
 
   // ─── CURSORES COOPERATIVOS ───────────────────────────────────────────────
 
-  socket.on('cursor:move', ({ boardId, x, y, name }) => {
+  socket.on('cursor:move', ({ boardId, x, y }) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    const name = socket.data.userName ?? 'Usuário';
     socket.volatile.to(`board_${boardId}`).emit('cursor:move', { userId, x, y, name });
   });
 
   // ─── PRESENCE (USUÁRIOS ONLINE) ──────────────────────────────────────────
 
-  socket.on('presence:join', async ({ boardId, name }) => {
-    logger.debug(`[Socket] presence:join — user=${userId} name=${name} board=${boardId}`);
-    
+  socket.on('presence:join', async ({ boardId }) => {
+    logger.debug(`[Socket] presence:join — user=${userId} board=${boardId}`);
+
+    // Pode chegar antes de o board:join terminar, então valida o acesso aqui mesmo.
+    // O nome vem do banco: o enviado pelo cliente permitia se passar por outra pessoa.
+    let name;
+    try {
+      const boardService = require('../../modules/board/board.service');
+      const prisma = require('../../config/database');
+      await boardService._checkAccess(boardId, userId);
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+      name = user?.name ?? 'Usuário';
+      socket.data.userName = name;
+    } catch (error) {
+      logger.warn(`[Socket] presence:join negado — user=${userId} board=${boardId}: ${error.message}`);
+      return;
+    }
+
     // Armazena o boardId atual localmente no socket Object para limpeza no disconnect nativo
     socket.currentBoardId = boardId;
 

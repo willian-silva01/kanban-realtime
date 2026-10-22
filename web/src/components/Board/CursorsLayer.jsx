@@ -50,8 +50,10 @@ export default function CursorsLayer({ socket }) {
                        font-size: 0.7rem; font-weight: bold; position: absolute; top: 20px; left: 16px;
                        white-space: nowrap; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 2px solid white;
                        pointer-events: none; user-select: none;
-                    ">${data.name}</div>
+                    "></div>
                 `;
+                // textContent, nunca innerHTML: o nome vem da rede
+                cursorNode.lastElementChild.textContent = data.name ?? '';
                 
                 containerRef.current.appendChild(cursorNode);
                 activeCursors.current[userId] = cursorNode;

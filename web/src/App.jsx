@@ -57,7 +57,7 @@ function BoardPage() {
         }
       });
 
-      socket.emit('presence:join', { boardId, name: user?.name || 'Anônimo' });
+      socket.emit('presence:join', { boardId }); // nome vem do servidor
     };
 
     const onPresenceUpdate = (users) => setOnlineUsers(users);
@@ -77,7 +77,7 @@ function BoardPage() {
         socket.emit('presence:leave', { boardId });
       }
     };
-  }, [socket, boardId, user, setBoardError, setOnlineUsers]);
+  }, [socket, boardId, setBoardError, setOnlineUsers]);
 
   return (
     <div className="app-container">
