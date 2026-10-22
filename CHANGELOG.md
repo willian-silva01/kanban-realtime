@@ -15,6 +15,8 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - CD só executa após CI verde na `main` (`workflow_run`), usando o commit validado pelo CI; também pode ser disparado manualmente.
 
 ### Corrigido
+- `card:move` recebido de outro cliente posicionava o card no índice errado da coluna destino e não reindexava a coluna de origem (#33).
+- `card:move` recebido de outro cliente apagava labels, responsáveis e checklists do card até o próximo resync (#33).
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Adicionado
