@@ -148,6 +148,11 @@ Veja [`server/.env.example`](server/.env.example) para todas as variáveis neces
 | `JWT_REFRESH_SECRET` | Segredo do refresh token |
 | `JWT_REFRESH_EXPIRES_IN` | TTL do refresh token (padrão: `7d`) |
 | `PORT` | Porta do servidor (padrão: `3000`) |
+| `FRONTEND_URL` | Origem permitida no CORS da API e do Socket.IO |
+| `SMTP_HOST` | Servidor SMTP. Vazio = envio de e-mails desabilitado (aviso no startup) |
+| `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | Porta e credenciais SMTP. Gmail/Outlook exigem senha de app — ver `.env.example` |
+| `SMTP_FROM` | Endereço remetente dos e-mails |
+| `APP_URL` | URL pública do backend, usada nos links de descadastro |
 
 ---
 
