@@ -20,6 +20,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Servidor avisa no startup quando o SMTP não está configurado (antes o envio de e-mails era desabilitado em silêncio) e quando falta `APP_URL` fora de desenvolvimento (#38).
 - Com SMTP desabilitado, os envios de e-mail não consultam mais o banco à toa (#38).
 - Painel de atividades nunca carregava o histórico: o frontend esperava `data.activities`, mas a API retorna `data` como lista (#34).
+- Card arrastado para uma coluna vazia voltava à coluna original ao recarregar: o movimento não era enviado ao servidor.
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Documentação
