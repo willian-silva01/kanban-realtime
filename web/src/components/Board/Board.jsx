@@ -83,6 +83,9 @@ export default function Board({ socket, boardId, user }) {
 
   const offlineQueueRef = useRef([]);
   const lastEmitTime = useRef(0);
+  // Coluna/posição do card ao iniciar o drag — o handleDragOver já move o card na tela,
+  // então no dragEnd só dá para saber se houve mudança comparando com a origem.
+  const dragOriginRef = useRef(null);
   const searchInputRef = useRef(null);
   const boardContainerRef = useRef(null);
   const THROTTLE_MS = 50;
@@ -468,6 +471,12 @@ export default function Board({ socket, boardId, user }) {
   const handleDragStart = (event) => {
     const card = cards.find((c) => c.id === event.active.id);
     setActiveCard(card);
+    dragOriginRef.current = card
+      ? {
+          columnId: card.columnId,
+          index: cards.filter((c) => c.columnId === card.columnId).findIndex((c) => c.id === card.id),
+        }
+      : null;
   };
 
   const handleDragOver = (event) => {
@@ -488,7 +497,7 @@ export default function Board({ socket, boardId, user }) {
         const overIndex = prev.findIndex((c) => c.id === overId);
         if (prev[activeIndex].columnId !== prev[overIndex].columnId) {
           const mod = [...prev];
-          mod[activeIndex].columnId = mod[overIndex].columnId;
+          mod[activeIndex] = { ...mod[activeIndex], columnId: mod[overIndex].columnId };
           return arrayMove(mod, activeIndex, overIndex);
         }
         return arrayMove(prev, activeIndex, overIndex);
@@ -500,7 +509,7 @@ export default function Board({ socket, boardId, user }) {
         const activeIndex = prev.findIndex((c) => c.id === activeId);
         if (prev[activeIndex].columnId !== overId) {
           const mod = [...prev];
-          mod[activeIndex].columnId = overId;
+          mod[activeIndex] = { ...mod[activeIndex], columnId: overId };
           return arrayMove(mod, activeIndex, prev.length - 1);
         }
         return prev;
@@ -511,9 +520,11 @@ export default function Board({ socket, boardId, user }) {
   const handleDragEnd = async (event) => {
     setActiveCard(null);
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    const origin = dragOriginRef.current;
+    dragOriginRef.current = null;
 
     if (active.data.current?.type === 'Column') {
+      if (!over || active.id === over.id) return;
       const oldIndex = columns.findIndex((c) => c.id === active.id);
       const newIndex = columns.findIndex((c) => c.id === over.id);
       if (oldIndex === newIndex) return;
@@ -538,6 +549,9 @@ export default function Board({ socket, boardId, user }) {
     if (!activeCardData) return;
     const colCards = cards.filter((c) => c.columnId === activeCardData.columnId);
     const newPositionIndex = colCards.findIndex((c) => c.id === activeId);
+    // Não usar over.id === active.id como "não moveu": ao soltar numa coluna vazia,
+    // o card já foi movido no dragOver e o dnd-kit informa o próprio card como alvo.
+    if (origin && origin.columnId === activeCardData.columnId && origin.index === newPositionIndex) return;
 
     if (socket) {
       const payload = {

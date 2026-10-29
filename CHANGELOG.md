@@ -13,6 +13,7 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Deploy (staging/produção) só executa com a variável de repositório `DEPLOY_ENABLED=true`.
 
 ### Corrigido
+- Card arrastado para uma coluna vazia voltava à coluna original ao recarregar: o movimento não era enviado ao servidor.
 - Erros de ESLint no frontend que quebrariam o CI.
 
 ### Adicionado
