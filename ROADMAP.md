@@ -4,6 +4,18 @@ O backlog vive nas [issues do GitHub](https://github.com/willian-silva01/kanban-
 agrupado em milestones. Este arquivo resume a ordem de execução e o porquê dela.
 O que já foi entregue está no [CHANGELOG](CHANGELOG.md).
 
+Cada milestone é executado em Sprints de uma semana, acompanhadas no board Scrum
+do próprio Kanban Realtime (ver [Gestão com Scrum](CONTRIBUTING.md#gestão-com-scrum)).
+
+| Sprint | Milestone | Situação |
+|---|---|---|
+| 1 | v0.1.0 — Fundação do MVP | Publicada |
+| 2–4 | v1.0.0 — Primeira versão completa | Publicada |
+| 5 | v1.1.0 — Colunas pela UI e sync consistente | Publicada |
+| 6 | v1.2.0 — Estabilização | Concluída, em validação (`preview/validacao`) |
+| 7 | v1.3.0 — Header e navegação | Concluída, em validação (`preview/validacao`) |
+| 8 | v1.4.0 — Produtividade nos cards | Em andamento |
+
 ## v1.2.0 — Estabilização
 
 Corrige o que está quebrado antes de adicionar funcionalidades.
@@ -12,7 +24,6 @@ Corrige o que está quebrado antes de adicionar funcionalidades.
 |---|---|---|
 | [#33](https://github.com/willian-silva01/kanban-realtime/issues/33) | P0 | `card:move` — outros clientes veem o card na posição errada |
 | [#38](https://github.com/willian-silva01/kanban-realtime/issues/38) | P1 | SMTP não configurado falha em silêncio; `.env.example` incompleto |
-| — | P1 | Cobertura de linhas do backend de 60% de volta para 70% (testes de `checklist`, `workspace`, `notification`, `assignee` e `email` services) |
 
 ## v1.3.0 — Header e navegação
 
@@ -29,16 +40,24 @@ para não refazer o layout várias vezes. Ordem interna:
 
 ## v1.4.0 — Produtividade nos cards
 
-| Issue | Prioridade | Descrição |
-|---|---|---|
-| [#39](https://github.com/willian-silva01/kanban-realtime/issues/39) | P2 | Contador de cards, quick-add, duplicar card, WIP limit, card cover |
+A #39 agrupava cinco funcionalidades independentes e foi dividida no refinamento
+(#41–#45). Contador e duplicar primeiro (menor esforço, maior uso). A Sprint
+também quita duas dívidas técnicas e configura o board de gestão do projeto.
 
-#39 agrupa cinco funcionalidades independentes. Antes de começar, dividir em
-issues menores; contador e duplicar primeiro (menor esforço, maior uso).
+| Issue | Prioridade | SP | Descrição |
+|---|---|---|---|
+| [#41](https://github.com/willian-silva01/kanban-realtime/issues/41) | P2 | 1 | Contador de cards por coluna |
+| [#42](https://github.com/willian-silva01/kanban-realtime/issues/42) | P2 | 2 | Duplicar card |
+| [#43](https://github.com/willian-silva01/kanban-realtime/issues/43) | P2 | 2 | Quick-add de cards |
+| [#44](https://github.com/willian-silva01/kanban-realtime/issues/44) | P2 | 3 | Limite WIP por coluna |
+| [#45](https://github.com/willian-silva01/kanban-realtime/issues/45) | P2 | 2 | Capa do card |
+| [#46](https://github.com/willian-silva01/kanban-realtime/issues/46) | P1 | 3 | Cobertura do backend de volta a 70% |
+| [#47](https://github.com/willian-silva01/kanban-realtime/issues/47) | P1 | 2 | Adotar migrations versionadas do Prisma |
+| [#48](https://github.com/willian-silva01/kanban-realtime/issues/48) | P1 | 1 | Configurar o board Scrum do projeto no Kanban Realtime |
 
 ## Dívida técnica conhecida
 
-- Threshold de cobertura do backend reduzido de 70% para 60% (baseline real quando o CI passou a rodar). Só pode subir.
+- Threshold de cobertura do backend reduzido de 70% para 60% (baseline real quando o CI passou a rodar). Só pode subir — volta a 70% na #46.
 - Warning de `react-hooks/exhaustive-deps` em `CommentsPanel.jsx` (`filteredMembers` sem `useMemo`).
-- `server/prisma/migrations/` está no `.gitignore` e o schema é aplicado com `prisma db push` — adotar migrations versionadas antes do primeiro deploy real.
+- `server/prisma/migrations/` está no `.gitignore` e o schema é aplicado com `prisma db push` — migrations versionadas na #47, antes do primeiro deploy real.
 - Deploy desativado (`DEPLOY_ENABLED`) até existirem os servidores de staging e produção.

@@ -40,13 +40,29 @@ Um PR está pronto para merge quando:
 
 ## Labels
 
-Toda issue recebe **uma label de tipo e uma de prioridade**. A label de épico é opcional.
+Toda issue recebe **uma label de tipo e uma de prioridade**; ao entrar numa Sprint, recebe também a de Story Points. A label de épico é opcional.
 
 | Grupo | Labels | Uso |
 |---|---|---|
 | Tipo | `tipo: bug`, `tipo: feature`, `tipo: refactor`, `tipo: infra`, `tipo: testes`, `tipo: docs` | Natureza do trabalho |
 | Prioridade | `P0`, `P1`, `P2` | P0 = bloqueante, entra antes de tudo · P1 = próximo ciclo · P2 = desejável |
-| Épico | `epico: estabilizacao`, `epico: sync`, `epico: ux`, `epico: colaboracao`, `epico: infra`, `epico: mvp` | Área do produto |
+| Story Points | `SP: 1` … `SP: 5` | Esforço estimado no Sprint Planning · 1 = simples e conhecido · 5 = complexo ou incerto |
+| Épico | `epico: mvp`, `epico: sync`, `epico: colaboracao`, `epico: ux`, `epico: infra`, `epico: estabilizacao`, `epico: governanca` | Área do produto (E1 a E7) |
+
+As labels e milestones são criadas por `bash scripts/github/setup-project.sh` (idempotente).
+
+## Gestão com Scrum
+
+O projeto é gerido no próprio Kanban Realtime, no workspace **Gestão do Projeto**, em um board criado com o template **Scrum** (Backlog → To Do → In Progress → Review → Done) mais a coluna **Retrospectivas**.
+
+- **Card = issue.** Título `#<issue> título`; a descrição traz o link da issue; o checklist reúne os critérios de aceite e o Definition of Done. As labels do card são as mesmas da issue.
+- **Sprint de uma semana.** Vencimento do card = último dia da Sprint; o responsável é atribuído ao mover para In Progress.
+- **Sprint Planning:** cards priorizados saem do Backlog para To Do com a label de SP; a meta da Sprint fica num card fixado no topo da coluna.
+- **Daily:** um comentário no card em andamento, no início de cada sessão — o que foi feito, o próximo passo, impedimentos. O painel de Atividades guarda o histórico.
+- **Review:** demonstração com dois usuários no mesmo board; o board é exportado em PDF como relatório da Sprint.
+- **Retrospectiva:** um card em Retrospectivas com uma prática a manter e uma a melhorar. Depois, os cards de Done são arquivados.
+
+O card vai para Review quando o PR é aberto e para Done quando o PR é integrado (o `closes #N` fecha a issue no GitHub).
 
 ## Milestones e releases
 

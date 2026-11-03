@@ -25,6 +25,9 @@ e o projeto adota [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Documentação
 - `server/.env.example` e README documentam `SMTP_*`, `APP_URL` e como gerar senha de app no Gmail/Outlook (#38).
+- Gestão com Scrum no `CONTRIBUTING.md`: board do projeto no próprio Kanban Realtime, Sprints semanais e labels de Story Points.
+- `ROADMAP.md` com o mapa Sprint → milestone e a #39 dividida em #41–#45; dívidas técnicas viram as issues #46 e #47.
+- `setup-project.sh` cria as labels `SP: 1`–`SP: 5` e `epico: governanca`, os milestones das versões publicadas e as issues da Sprint 8.
 
 ### Adicionado
 - Botão "← Boards" e nome do board no header da board page, com truncamento em telas menores (#35).
