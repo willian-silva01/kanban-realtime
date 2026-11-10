@@ -64,6 +64,13 @@ O projeto é gerido no próprio Kanban Realtime, no workspace **Gestão do Proje
 
 O card vai para Review quando o PR é aberto e para Done quando o PR é integrado (o `closes #N` fecha a issue no GitHub).
 
+Para recriar o board com o histórico do projeto (Sprints, commits, retrospectivas e backlog futuro, definidos em `server/prisma/gestao/backlog.js`):
+
+```bash
+cd server
+npm run db:seed:gestao -- --owner <seu-email> [--member <email>] [--reset]
+```
+
 ## Milestones e releases
 
 - Cada milestone corresponde a uma versão (`v1.2.0`, `v1.3.0`, ...). A ordem e o porquê dela estão no [ROADMAP](ROADMAP.md).
